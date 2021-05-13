@@ -26,8 +26,8 @@ const tagDefault = "0.0.0"
 type gitClient interface {
 	CurrentBranch() (string, error)
 	IsRepo() bool
-	LatestTag() (string, error)
-	AncestorTag(include, exclude string) (string, error)
+	LatestTag() string
+	AncestorTag(include, exclude string) string
 	SourceBranch(commitHash string) (string, error)
 }
 
@@ -88,10 +88,7 @@ func Tag(params Params, gc gitClient) (Result, error) {
 
 	log.Debugf("method: %q, version: %q", method, version)
 
-	latestTag, err := gc.LatestTag()
-	if err != nil {
-		return Result{}, fmt.Errorf("failed getting latest tag: %s", err)
-	}
+	latestTag := gc.LatestTag()
 
 	var (
 		tag      *semver.Version
@@ -190,10 +187,7 @@ func Tag(params Params, gc gitClient) (Result, error) {
 		finalTag = params.Prefix + tag.FinalizeVersion()
 	}
 
-	ancestorTag, err = gc.AncestorTag(includePattern, excludePattern)
-	if err != nil {
-		return Result{}, fmt.Errorf("failed getting ancestor tag: %s", err)
-	}
+	ancestorTag = gc.AncestorTag(includePattern, excludePattern)
 
 	return Result{
 		PreviousTag:  previousTag,
