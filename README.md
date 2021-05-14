@@ -15,6 +15,7 @@ These are the prefixes we expect when `auto` bump:
 - `^feature/.*` - `minor`
 - `^major/.*` - `major`
 - `^misc/.*` - `build`
+- `^resync/.*` - Special case needed to resync base branch into child - Mostly from `master` into `develop`.
 
 ### Scenarios
 

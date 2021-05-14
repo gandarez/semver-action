@@ -19,6 +19,7 @@ var (
 	branchHotfixPrefixRegex  = regexp.MustCompile(`(?i)^hotfix/.+`)
 	branchMajorPrefixRegex   = regexp.MustCompile(`(?i)^major/.+`)
 	branchMiscPrefixRegex    = regexp.MustCompile(`(?i)^misc/.+`)
+	branchResyncPrefixRegex  = regexp.MustCompile(`(?i)^resync/.+`)
 )
 
 const tagDefault = "0.0.0"
@@ -181,6 +182,59 @@ func Tag(params Params, gc gitClient) (Result, error) {
 		}
 
 		finalTag = params.Prefix + tag.String()
+	case "resync":
+		isPrerelease = true
+		previousDevelopPattern := fmt.Sprintf("%s[0-9]*-%s*", params.Prefix, params.PrereleaseID)
+		previousFinalPattern := fmt.Sprintf("%s[0-9]*", params.Prefix)
+
+		previousDevelop := gc.AncestorTag(previousDevelopPattern, previousFinalPattern)
+		previousFinal := gc.AncestorTag(previousFinalPattern, "")
+
+		previousDevelopSemver, _ := semver.ParseTolerant(previousDevelop)
+		previousFinalSemver, _ := semver.ParseTolerant(previousFinal)
+
+		// If latest tag at master is less than develop
+		// then increment build number otherwise create
+		// a new develop tag.
+		if previousFinalSemver.LT(previousDevelopSemver) {
+			nextBuildNumber := tag.Pre[1].VersionNum + 1
+
+			preVersion, err := semver.NewPRVersion(params.PrereleaseID)
+			if err != nil {
+				return Result{}, fmt.Errorf("failed to create new pre-release version: %s", err)
+			}
+
+			tag.Pre = append(tag.Pre, preVersion)
+
+			buildVersion, err := semver.NewPRVersion(strconv.Itoa(int(nextBuildNumber)))
+			if err != nil {
+				return Result{}, fmt.Errorf("failed to create new build version: %s", err)
+			}
+
+			tag.Pre = append(tag.Pre, buildVersion)
+
+			finalTag = params.Prefix + tag.String()
+		} else {
+			if err := tag.IncrementPatch(); err != nil {
+				return Result{}, fmt.Errorf("failed to increment patch version: %s", err)
+			}
+
+			preVersion, err := semver.NewPRVersion(params.PrereleaseID)
+			if err != nil {
+				return Result{}, fmt.Errorf("failed to create new pre-release version: %s", err)
+			}
+
+			tag.Pre = append(tag.Pre, preVersion)
+
+			buildVersion, err := semver.NewPRVersion("1")
+			if err != nil {
+				return Result{}, fmt.Errorf("failed to create new build version: %s", err)
+			}
+
+			tag.Pre = append(tag.Pre, buildVersion)
+
+			finalTag = params.Prefix + tag.String()
+		}
 	default:
 		includePattern = fmt.Sprintf("%s[0-9]*", params.Prefix)
 		excludePattern = fmt.Sprintf("%s[0-9]*-%s*", params.Prefix, params.PrereleaseID)
@@ -231,6 +285,11 @@ func determineBumpStrategy(bump, sourceBranch, destBranch, mainBranchName, devel
 	// hotfix into main branch
 	if branchHotfixPrefixRegex.MatchString(sourceBranch) && destBranch == mainBranchName {
 		return "hotfix", ""
+	}
+
+	// resync into develop
+	if branchResyncPrefixRegex.MatchString(sourceBranch) && destBranch == developBranchName {
+		return "resync", ""
 	}
 
 	// develop branch into main branch
