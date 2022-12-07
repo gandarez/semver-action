@@ -5,7 +5,9 @@ import (
 	"testing"
 
 	"github.com/gandarez/semver-action/pkg/actions"
+
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetInput(t *testing.T) {
@@ -36,4 +38,23 @@ func TestGetInput(t *testing.T) {
 			assert.Equal(t, test.Expected, value)
 		})
 	}
+}
+
+func TestSetOutput(t *testing.T) {
+	outputFile, err := os.CreateTemp(t.TempDir(), "")
+	require.NoError(t, err)
+
+	defer outputFile.Close()
+
+	err = actions.SetOutput(outputFile.Name(), "SOME_OUTPUT", "some-value")
+	require.NoError(t, err)
+
+	data, err := os.ReadFile(outputFile.Name())
+	require.NoError(t, err)
+
+	assert.Regexp(
+		t,
+		`(?im)^.*<<ghadelimiter\_[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[0-9A-F]{4}-[0-9A-F]{12}\n.*\nghadelimiter\_[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[0-9A-F]{4}-[0-9A-F]{12}\n`,
+		string(data),
+	)
 }
