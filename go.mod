@@ -6,6 +6,7 @@ require (
 	github.com/alecthomas/assert v0.0.0-20170929043011-405dbfeb8e38
 	github.com/apex/log v1.9.0
 	github.com/blang/semver/v4 v4.0.0
+	github.com/dlclark/regexp2 v1.7.0
 	github.com/stretchr/testify v1.7.0
 )
 

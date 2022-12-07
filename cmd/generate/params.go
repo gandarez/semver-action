@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strconv"
 
+	"github.com/gandarez/semver-action/internal/regex"
 	"github.com/gandarez/semver-action/pkg/actions"
 
 	"github.com/blang/semver/v4"
@@ -16,6 +17,8 @@ var (
 	commitShaRegex = regexp.MustCompile(`\b[0-9a-f]{5,40}\b`)
 	// nolint
 	validBumpStrategies = []string{"auto", "major", "minor", "patch"}
+	// nolint
+	validBranchingModels = []string{"git-flow", "trunk-based"}
 )
 
 // Params contains semver generate command parameters.
@@ -23,11 +26,16 @@ type Params struct {
 	CommitSha         string
 	RepoDir           string
 	Bump              string
+	BranchingModel    string
 	BaseVersion       *semver.Version
 	Prefix            string
 	PrereleaseID      string
 	MainBranchName    string
 	DevelopBranchName string
+	PatchPattern      regex.Regex
+	MinorPattern      regex.Regex
+	MajorPattern      regex.Regex
+	BuildPattern      regex.Regex
 	Debug             bool
 }
 
@@ -57,6 +65,60 @@ func LoadParams() (Params, error) {
 		}
 
 		bump = bumpStr
+	}
+
+	var branchingModel string = "git-flow"
+
+	if branchingModelStr := actions.GetInput("branching_model"); branchingModelStr != "" {
+		if !stringInSlice(branchingModelStr, validBranchingModels) {
+			return Params{}, fmt.Errorf("invalid branching model value: %s", branchingModelStr)
+		}
+
+		branchingModel = branchingModelStr
+	}
+
+	var patchPattern = regex.MustCompile("(?i)^bugfix/.+")
+
+	if patchPatternStr := actions.GetInput("patch_pattern"); patchPatternStr != "" {
+		compiled, err := regex.Compile(patchPatternStr)
+		if err != nil {
+			return Params{}, fmt.Errorf("invalid patch pattern value: %s", patchPatternStr)
+		}
+
+		patchPattern = compiled
+	}
+
+	var minorPattern = regex.MustCompile("(?i)^feature/.+")
+
+	if minorPatternStr := actions.GetInput("minor_pattern"); minorPatternStr != "" {
+		compiled, err := regex.Compile(minorPatternStr)
+		if err != nil {
+			return Params{}, fmt.Errorf("invalid minor pattern value: %s", minorPatternStr)
+		}
+
+		minorPattern = compiled
+	}
+
+	var majorPattern = regex.MustCompile("(?i)^release/.+")
+
+	if majorPatternStr := actions.GetInput("major_pattern"); majorPatternStr != "" {
+		compiled, err := regex.Compile(majorPatternStr)
+		if err != nil {
+			return Params{}, fmt.Errorf("invalid major pattern value: %s", majorPatternStr)
+		}
+
+		majorPattern = compiled
+	}
+
+	var buildPattern = regex.MustCompile("(?i)^(doc(s)?|misc)/.+")
+
+	if buildPatternStr := actions.GetInput("build_pattern"); buildPatternStr != "" {
+		compiled, err := regex.Compile(buildPatternStr)
+		if err != nil {
+			return Params{}, fmt.Errorf("invalid build pattern value: %s", buildPatternStr)
+		}
+
+		buildPattern = compiled
 	}
 
 	var debug bool
@@ -112,11 +174,16 @@ func LoadParams() (Params, error) {
 		CommitSha:         commitSha,
 		RepoDir:           repoDir,
 		Bump:              bump,
+		BranchingModel:    branchingModel,
 		BaseVersion:       baseVersion,
 		Prefix:            prefix,
 		PrereleaseID:      prereleaseID,
 		MainBranchName:    mainBranchName,
 		DevelopBranchName: developBranchName,
+		PatchPattern:      patchPattern,
+		MinorPattern:      minorPattern,
+		MajorPattern:      majorPattern,
+		BuildPattern:      buildPattern,
 		Debug:             debug,
 	}, nil
 }
@@ -140,7 +207,8 @@ func (p Params) String() string {
 	return fmt.Sprintf(
 		"commit sha: %q, bump: %q, base version: %q, prefix: %q,"+
 			" prerelease id: %q, main branch name: %q, develop branch name: %q,"+
-			" repo dir: %q, debug: %t\n",
+			" patch pattern: %q, minor pattern: %q, major pattern: %q, build pattern: %q,"+
+			" repo dir: %q, debug: %t",
 		p.CommitSha,
 		p.Bump,
 		baseVersion,
@@ -148,6 +216,10 @@ func (p Params) String() string {
 		p.PrereleaseID,
 		p.MainBranchName,
 		p.DevelopBranchName,
+		p.PatchPattern.String(),
+		p.MinorPattern.String(),
+		p.MajorPattern.String(),
+		p.BuildPattern.String(),
 		p.RepoDir,
 		p.Debug,
 	)

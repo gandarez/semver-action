@@ -10,11 +10,31 @@ inputs:
     description: 'Bump strategy for semantic versioning. Can be `auto`, `major`, `minor`, `patch`'
     default: 'auto'
     required: false
+  branching_model:
+    description: 'Branching model. Can be `git-flow` or `trunk-based`'
+    default: 'git-flow'
+    required: false
+  patch_regex:
+    description: 'Regex to match patch branch name'
+    default: '(?i)^bugfix/.+'
+    required: false
+  minor_regex:
+    description: 'Regex to match minor branch name'
+    default: '(?i)^feature/.+'
+    required: false
+  major_regex:
+    description: 'Regex to match major branch name'
+    default: '(?i)^release/.+'
+    required: false
+  build_regex:
+    description: 'Regex to match build branch name'
+    default: '(?i)^(doc(s)?|misc)/.+'
+    required: false
   base_version:
-    description: 'Version to use as base for the generation, skips version bumps.'
+    description: 'Version to use as base for the generation, skips version bumps'
     required: false
   prefix:
-    description: 'Prefix used to prepend the final version'
+    description: 'Prefix used to prepend the calculated semantic version'
     default: 'v'
     required: false
   prerelease_id:
@@ -34,7 +54,7 @@ inputs:
     default: '.'
     required: false
   debug:
-    description: 'Enables debug mode'
+    description: 'Enable debug mode'
     default: 'false'
     required: false
     
@@ -42,7 +62,7 @@ outputs:
   semver_tag:
     description: 'The calculdated semantic version'
   is_prerelease:
-    description: 'True if calculated tag is pre-release'
+    description: 'True if calculated semantic version is pre-release'
   previous_tag:
     description: 'The tag used to calculate next semantic version'
   ancestor_tag:
@@ -53,6 +73,11 @@ runs:
   image: 'Dockerfile'
   args:
     - ${{ inputs.bump }}
+    - ${{ inputs.branching_model }}
+    - ${{ inputs.patch_regex }}
+    - ${{ inputs.minor_regex }}
+    - ${{ inputs.major_regex }}
+    - ${{ inputs.build_regex }}
     - ${{ inputs.base_version }}
     - ${{ inputs.prefix }}
     - ${{ inputs.prerelease_id }}
