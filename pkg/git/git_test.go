@@ -11,7 +11,7 @@ import (
 )
 
 func TestClean(t *testing.T) {
-	gc := git.NewGit("/path/to/repo")
+	gc := git.New("/path/to/repo")
 
 	value, err := gc.Clean("'test'", nil)
 	require.NoError(t, err)
@@ -20,7 +20,7 @@ func TestClean(t *testing.T) {
 }
 
 func TestCleanErr(t *testing.T) {
-	gc := git.NewGit("/path/to/repo")
+	gc := git.New("/path/to/repo")
 
 	value, err := gc.Clean("'test'", errors.New("error"))
 	require.Error(t, err)
@@ -30,7 +30,7 @@ func TestCleanErr(t *testing.T) {
 }
 
 func TestCurrentBranch(t *testing.T) {
-	gc := git.NewGit("/path/to/repo")
+	gc := git.New("/path/to/repo")
 	gc.GitCmd = func(env map[string]string, args ...string) (string, error) {
 		assert.Nil(t, env)
 		assert.Equal(t, args, []string{"-C", "/path/to/repo", "rev-parse", "--abbrev-ref", "HEAD", "--quiet"})
@@ -45,7 +45,7 @@ func TestCurrentBranch(t *testing.T) {
 }
 
 func TestCurrentBranchErr(t *testing.T) {
-	gc := git.NewGit("/path/to/repo")
+	gc := git.New("/path/to/repo")
 	gc.GitCmd = func(env map[string]string, args ...string) (string, error) {
 		assert.Nil(t, env)
 		assert.Equal(t, args, []string{"-C", "/path/to/repo", "rev-parse", "--abbrev-ref", "HEAD", "--quiet"})
@@ -60,7 +60,7 @@ func TestCurrentBranchErr(t *testing.T) {
 }
 
 func TestSourceBranch(t *testing.T) {
-	gc := git.NewGit("/path/to/repo")
+	gc := git.New("/path/to/repo")
 	gc.GitCmd = func(env map[string]string, args ...string) (string, error) {
 		assert.Nil(t, env)
 		assert.Equal(t, args, []string{"-C", "/path/to/repo", "log", "-1", "--pretty=%B", "81918ffc"})
@@ -75,7 +75,7 @@ func TestSourceBranch(t *testing.T) {
 }
 
 func TestSourceBranch_NotValidPullRequestMessage(t *testing.T) {
-	gc := git.NewGit("/path/to/repo")
+	gc := git.New("/path/to/repo")
 	gc.GitCmd = func(env map[string]string, args ...string) (string, error) {
 		assert.Nil(t, env)
 		assert.Equal(t, args, []string{"-C", "/path/to/repo", "log", "-1", "--pretty=%B", "81918ffc"})
@@ -90,7 +90,7 @@ func TestSourceBranch_NotValidPullRequestMessage(t *testing.T) {
 }
 
 func TestSourceBranch_NotValiddBranchName(t *testing.T) {
-	gc := git.NewGit("/path/to/repo")
+	gc := git.New("/path/to/repo")
 	gc.GitCmd = func(env map[string]string, args ...string) (string, error) {
 		assert.Nil(t, env)
 		assert.Equal(t, args, []string{"-C", "/path/to/repo", "log", "-1", "--pretty=%B", "81918ffc"})
@@ -105,7 +105,7 @@ func TestSourceBranch_NotValiddBranchName(t *testing.T) {
 }
 
 func TestLatestTag(t *testing.T) {
-	gc := git.NewGit("/path/to/repo")
+	gc := git.New("/path/to/repo")
 	gc.GitCmd = func(env map[string]string, args ...string) (string, error) {
 		assert.Nil(t, env)
 		assert.Equal(t, args, []string{"-C", "/path/to/repo", "tag", "--points-at", "HEAD", "--sort", "-version:creatordate"})
@@ -121,7 +121,7 @@ func TestLatestTag(t *testing.T) {
 func TestLatestTag_NoTagFound(t *testing.T) {
 	var numCalls int
 
-	gc := git.NewGit("/path/to/repo")
+	gc := git.New("/path/to/repo")
 	gc.GitCmd = func(env map[string]string, args ...string) (string, error) {
 		numCalls++
 
@@ -162,7 +162,7 @@ func TestAncestorTag(t *testing.T) {
 		},
 	}
 
-	gc := git.NewGit("/path/to/repo")
+	gc := git.New("/path/to/repo")
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -189,7 +189,7 @@ func TestAncestorTag(t *testing.T) {
 func TestAncestorTag_NoTagFound(t *testing.T) {
 	var numCalls int
 
-	gc := git.NewGit("/path/to/repo")
+	gc := git.New("/path/to/repo")
 	gc.GitCmd = func(env map[string]string, args ...string) (string, error) {
 		numCalls++
 

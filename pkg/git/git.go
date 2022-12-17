@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -18,6 +19,7 @@ type (
 	Git interface {
 		CurrentBranch() (string, error)
 		IsRepo() bool
+		MakeSafe() error
 		LatestTag() string
 		AncestorTag(include, exclude, branch string) string
 		SourceBranch(commitHash string) (string, error)
@@ -29,8 +31,8 @@ type (
 	}
 )
 
-// NewGit creates a new git instance.
-func NewGit(repoDir string) Client {
+// New creates a new git instance.
+func New(repoDir string) Client {
 	return Client{
 		repoDir: repoDir,
 		GitCmd:  gitCmdFn,
@@ -87,6 +89,21 @@ func (c Client) Clean(output string, err error) (string, error) {
 func (c Client) IsRepo() bool {
 	out, err := c.run("rev-parse", "--is-inside-work-tree")
 	return err == nil && strings.TrimSpace(out) == "true"
+}
+
+// MakeSafe adds safe.directory global config.
+func (c Client) MakeSafe() error {
+	dir, err := filepath.Abs(c.repoDir)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute path for: %s", c.repoDir)
+	}
+
+	_, err = c.run("config", "--global", "--add", "safe.directory", dir)
+	if err != nil {
+		return fmt.Errorf("failed to set safe current directory")
+	}
+
+	return nil
 }
 
 // CurrentBranch returns the current branch checked out.

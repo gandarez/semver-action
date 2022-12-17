@@ -35,13 +35,18 @@ func Run() (Result, error) {
 
 	log.Debug(params.String())
 
-	gc := git.NewGit(params.RepoDir)
+	gc := git.New(params.RepoDir)
 
 	return Tag(params, gc)
 }
 
 // Tag returns the calculated semantic version.
 func Tag(params Params, gc git.Git) (Result, error) {
+	err := gc.MakeSafe()
+	if err != nil {
+		return Result{}, fmt.Errorf("failed to make safe: %s", err)
+	}
+
 	if !gc.IsRepo() {
 		return Result{}, fmt.Errorf("current folder is not a git repository")
 	}
