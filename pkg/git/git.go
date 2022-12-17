@@ -13,15 +13,25 @@ import (
 
 var mergePRRegex = regexp.MustCompile(`Merge pull request #([0-9])+ from (?P<source>.*)+`) // nolint
 
-// Client is an empty struct to run git.
-type Client struct {
-	repoDir string
-	GitCmd  func(env map[string]string, args ...string) (string, error)
-}
+type (
+	// Client is an interface to git.
+	Git interface {
+		CurrentBranch() (string, error)
+		IsRepo() bool
+		LatestTag() string
+		AncestorTag(include, exclude, branch string) string
+		SourceBranch(commitHash string) (string, error)
+	}
+
+	Client struct {
+		repoDir string
+		GitCmd  func(env map[string]string, args ...string) (string, error)
+	}
+)
 
 // NewGit creates a new git instance.
-func NewGit(repoDir string) *Client {
-	return &Client{
+func NewGit(repoDir string) Client {
+	return Client{
 		repoDir: repoDir,
 		GitCmd:  gitCmdFn,
 	}
@@ -64,7 +74,7 @@ func gitCmdFn(env map[string]string, args ...string) (string, error) {
 }
 
 // Clean the output.
-func (c *Client) Clean(output string, err error) (string, error) {
+func (c Client) Clean(output string, err error) (string, error) {
 	output = strings.ReplaceAll(strings.Split(output, "\n")[0], "'", "")
 	if err != nil {
 		err = errors.New(strings.TrimSuffix(err.Error(), "\n"))
@@ -73,20 +83,15 @@ func (c *Client) Clean(output string, err error) (string, error) {
 	return output, err
 }
 
-// Run runs a git command and returns its output or errors.
-func (c *Client) Run(args ...string) (string, error) {
-	return c.GitCmd(nil, args...)
-}
-
 // IsRepo returns true if current folder is a git repository.
-func (c *Client) IsRepo() bool {
-	out, err := c.Run("rev-parse", "--is-inside-work-tree")
+func (c Client) IsRepo() bool {
+	out, err := c.run("rev-parse", "--is-inside-work-tree")
 	return err == nil && strings.TrimSpace(out) == "true"
 }
 
 // CurrentBranch returns the current branch checked out.
-func (c *Client) CurrentBranch() (string, error) {
-	dest, err := c.Clean(c.Run("-C", c.repoDir, "rev-parse", "--abbrev-ref", "HEAD", "--quiet"))
+func (c Client) CurrentBranch() (string, error) {
+	dest, err := c.Clean(c.run("-C", c.repoDir, "rev-parse", "--abbrev-ref", "HEAD", "--quiet"))
 	if err != nil {
 		return "", fmt.Errorf("could not get current branch: %s", err)
 	}
@@ -95,8 +100,8 @@ func (c *Client) CurrentBranch() (string, error) {
 }
 
 // SourceBranch tries to get branch from commit message.
-func (c *Client) SourceBranch(commitHash string) (string, error) {
-	message, err := c.Clean(c.Run("-C", c.repoDir, "log", "-1", "--pretty=%B", commitHash))
+func (c Client) SourceBranch(commitHash string) (string, error) {
+	message, err := c.Clean(c.run("-C", c.repoDir, "log", "-1", "--pretty=%B", commitHash))
 	if err != nil {
 		return "", fmt.Errorf("could not get message from commit: %s", err)
 	}
@@ -124,19 +129,26 @@ func (c *Client) SourceBranch(commitHash string) (string, error) {
 }
 
 // LatestTag returns the latest tag if found.
-func (c *Client) LatestTag() string {
-	result, _ := c.Clean(c.Run("-C", c.repoDir, "tag", "--points-at", "HEAD", "--sort", "-version:creatordate"))
+func (c Client) LatestTag() string {
+	result, _ := c.Clean(c.run("-C", c.repoDir, "tag", "--points-at", "HEAD", "--sort", "-version:creatordate"))
 	if result == "" {
-		result, _ = c.Clean(c.Run("-C", c.repoDir, "describe", "--tags", "--abbrev=0"))
+		result, _ = c.Clean(c.run("-C", c.repoDir, "describe", "--tags", "--abbrev=0"))
 	}
 	return result
 }
 
 // AncestorTag returns the previous tag that matches specific pattern if found.
-func (c *Client) AncestorTag(include, exclude string) string {
-	result, _ := c.Clean(c.Run("-C", c.repoDir, "describe", "--tags", "--abbrev=0", "--match", include, "--exclude", exclude))
+func (c Client) AncestorTag(include, exclude, branch string) string {
+	result, _ := c.Clean(c.run(
+		"-C", c.repoDir, "describe", "--tags", "--abbrev=0",
+		"--match", include, "--exclude", exclude, branch))
 	if result == "" {
-		result, _ = c.Clean(c.Run("-C", c.repoDir, "rev-list", "--max-parents=0", "HEAD"))
+		result, _ = c.Clean(c.run("-C", c.repoDir, "rev-list", "--max-parents=0", "HEAD"))
 	}
 	return result
+}
+
+// run runs a git command and returns its output or errors.
+func (c Client) run(args ...string) (string, error) {
+	return c.GitCmd(nil, args...)
 }

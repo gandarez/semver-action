@@ -1,9 +1,12 @@
-package generate
+package strategy_test
 
 import (
 	"testing"
 
-	"github.com/alecthomas/assert"
+	"github.com/gandarez/semver-action/internal/regex"
+	"github.com/gandarez/semver-action/internal/strategy"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDetermineBumpStrategy(t *testing.T) {
@@ -21,13 +24,6 @@ func TestDetermineBumpStrategy(t *testing.T) {
 			ExpectedMethod:  "build",
 			ExpectedVersion: "patch",
 		},
-		"source branch doc, dest branch develop and auto bump": {
-			SourceBranch:    "doc/some",
-			DestBranch:      "develop",
-			Bump:            "auto",
-			ExpectedMethod:  "build",
-			ExpectedVersion: "",
-		},
 		"source branch feature, dest branch develop and auto bump": {
 			SourceBranch:    "feature/some",
 			DestBranch:      "develop",
@@ -42,18 +38,19 @@ func TestDetermineBumpStrategy(t *testing.T) {
 			ExpectedMethod:  "build",
 			ExpectedVersion: "major",
 		},
+		"source branch doc, dest branch develop and auto bump": {
+			SourceBranch:    "doc/some",
+			DestBranch:      "develop",
+			Bump:            "auto",
+			ExpectedMethod:  "build",
+			ExpectedVersion: "",
+		},
 		"source branch misc, dest branch develop and auto bump": {
 			SourceBranch:    "misc/some",
 			DestBranch:      "develop",
 			Bump:            "auto",
 			ExpectedMethod:  "build",
 			ExpectedVersion: "",
-		},
-		"source branch hotfix, dest branch master and auto bump": {
-			SourceBranch:   "hotfix/some",
-			DestBranch:     "master",
-			Bump:           "auto",
-			ExpectedMethod: "hotfix",
 		},
 		"source branch develop, dest branch master and auto bump": {
 			SourceBranch:   "develop",
@@ -82,7 +79,18 @@ func TestDetermineBumpStrategy(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			method, version := determineBumpStrategy(test.Bump, test.SourceBranch, test.DestBranch, "master", "develop")
+			gf := strategy.New(strategy.Configuration{
+				Bump:              test.Bump,
+				BranchingModel:    "git-flow",
+				DevelopBranchName: "develop",
+				MainBranchName:    "master",
+				PatchPattern:      regex.MustCompile(`(?i)^bugfix/.+`),
+				MinorPattern:      regex.MustCompile(`(?i)^feature/.+`),
+				MajorPattern:      regex.MustCompile(`(?i)^major/.+`),
+				BuildPattern:      regex.MustCompile(`(?i)^(doc(s)?|misc)/.+`),
+			})
+
+			method, version := gf.DetermineBumpStrategy(test.SourceBranch, test.DestBranch)
 
 			assert.Equal(t, test.ExpectedMethod, method)
 			assert.Equal(t, test.ExpectedVersion, version)

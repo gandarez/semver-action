@@ -12,13 +12,15 @@ import (
 	"github.com/blang/semver/v4"
 )
 
+// nolint: gochecknoglobals
 var (
-	//nolint
-	commitShaRegex = regexp.MustCompile(`\b[0-9a-f]{5,40}\b`)
-	// nolint
-	validBumpStrategies = []string{"auto", "major", "minor", "patch"}
-	// nolint
-	validBranchingModels = []string{"git-flow", "trunk-based"}
+	branchBugfixPrefixRegex  = regex.MustCompile(`(?i)^bugfix/.+`)
+	branchFeaturePrefixRegex = regex.MustCompile(`(?i)^feature/.+`)
+	branchMajorPrefixRegex   = regex.MustCompile(`(?i)^release/.+`)
+	branchBuildPatternRegex  = regex.MustCompile(`(?i)^(doc(s)?|misc)/.+`)
+	commitShaRegex           = regex.MustCompile(`\b[0-9a-f]{5,40}\b`)
+	validBumpStrategies      = []string{"auto", "major", "minor", "patch"}
+	validBranchingModels     = []string{"git-flow", "trunk-based"}
 )
 
 // Params contains semver generate command parameters.
@@ -77,7 +79,7 @@ func LoadParams() (Params, error) {
 		branchingModel = branchingModelStr
 	}
 
-	var patchPattern = regex.MustCompile("(?i)^bugfix/.+")
+	var patchPattern = branchBugfixPrefixRegex
 
 	if patchPatternStr := actions.GetInput("patch_pattern"); patchPatternStr != "" {
 		compiled, err := regex.Compile(patchPatternStr)
@@ -88,7 +90,7 @@ func LoadParams() (Params, error) {
 		patchPattern = compiled
 	}
 
-	var minorPattern = regex.MustCompile("(?i)^feature/.+")
+	var minorPattern = branchFeaturePrefixRegex
 
 	if minorPatternStr := actions.GetInput("minor_pattern"); minorPatternStr != "" {
 		compiled, err := regex.Compile(minorPatternStr)
@@ -99,7 +101,7 @@ func LoadParams() (Params, error) {
 		minorPattern = compiled
 	}
 
-	var majorPattern = regex.MustCompile("(?i)^release/.+")
+	var majorPattern = branchMajorPrefixRegex
 
 	if majorPatternStr := actions.GetInput("major_pattern"); majorPatternStr != "" {
 		compiled, err := regex.Compile(majorPatternStr)
@@ -110,7 +112,7 @@ func LoadParams() (Params, error) {
 		majorPattern = compiled
 	}
 
-	var buildPattern = regex.MustCompile("(?i)^(doc(s)?|misc)/.+")
+	var buildPattern = branchBuildPatternRegex
 
 	if buildPatternStr := actions.GetInput("build_pattern"); buildPatternStr != "" {
 		compiled, err := regex.Compile(buildPatternStr)
