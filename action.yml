@@ -1,5 +1,5 @@
 name: 'semver-action'
-description: 'Generate a semantic version'
+description: 'Generate a semantic version based on branch name'
 
 branding:
   color: purple
@@ -7,54 +7,62 @@ branding:
 
 inputs:
   bump:
-    description: 'Bump strategy for semantic versioning. Can be `auto`, `major`, `minor`, `patch`'
+    description: 'Bump strategy for semantic versioning. Can be `auto`, `major`, `minor`, `patch`. Defaults to `auto`'
     default: 'auto'
     required: false
   branching_model:
-    description: 'Branching model. Can be `git-flow` or `trunk-based`'
+    description: 'Branching model. Can be `git-flow` or `trunk-based`. Defaults to `git-flow`'
     default: 'git-flow'
     required: false
   patch_regex:
-    description: 'Regex to match patch branch name'
-    default: '(?i)^bugfix/.+'
+    description: 'Patch regex to match branch name for patch increment. Defaults to `(?i)^(.+:)?(bugfix/.+)`'
+    default: '(?i)^(.+:)?(bugfix/.+)'
     required: false
   minor_regex:
-    description: 'Regex to match minor branch name'
-    default: '(?i)^feature/.+'
+    description: 'Feature regex to match branch name for minor increment. Defaults to `(?i)^(.+:)?(feature/.+)`'
+    default: '(?i)^(.+:)?(feature/.+)'
     required: false
   major_regex:
-    description: 'Regex to match major branch name'
-    default: '(?i)^release/.+'
+    description: 'Major regex to match branch name for major increment. Defaults to `(?i)^(.+:)?(release/.+)`'
+    default: '(?i)^(.+:)?(release/.+)'
     required: false
   build_regex:
-    description: 'Regex to match build branch name'
-    default: '(?i)^(doc(s)?|misc)/.+'
+    description: 'Build regex to match branch name for build increment. Defaults to `(?i)^(.+:)?((doc(s)?|misc)/.+)`'
+    default: '(?i)^(.+:)?((doc(s)?|misc)/.+)'
+    required: false
+  hotfix_pattern:
+    description: 'Hotfix regex to match branch name for patch increment. Defaults to `(?i)^(.+:)?(hotfix/.+)`'
+    default: '(?i)^(.+:)?(hotfix/.+)'
+    required: false
+  exclude_regex:
+    description: 'Regex to exclude branches from semantic versioning'
+    default: ''
     required: false
   base_version:
     description: 'Version to use as base for the generation, skips version bumps'
     required: false
   prefix:
-    description: 'Prefix used to prepend the calculated semantic version'
+    description: 'Prefix used to prepend the calculated semantic version. Defaults to `v`'
     default: 'v'
     required: false
   prerelease_id:
-    description: 'Text representing the pre-release identifier'
+    description: 'Text representing the pre-release identifier. Defaults to `pre`'
     default: 'pre'
     required: false
   main_branch_name:
-    description: 'The main branch name'
+    description: 'The main branch name. Defaults to `master`'
     default: 'master'
     required: false
   develop_branch_name:
-    description: 'The develop branch name'
+    description: 'The develop branch name. In trunk-based model this is ignored. Defaults to `develop`'
     default: 'develop'
     required: false
   repo_dir:
-    description: 'The repository path'
+    description: 'The repository path. Defaults to current directory'
     default: '.'
     required: false
   debug:
-    description: 'Enable debug mode'
+    description: 'Enable debug mode. Defaults to `false`'
     default: 'false'
     required: false
     
@@ -62,11 +70,11 @@ outputs:
   semver_tag:
     description: 'The calculdated semantic version'
   is_prerelease:
-    description: 'True if calculated semantic version is pre-release'
+    description: 'True if calculated semantic version is pre-release. For trunk-based model it is always `false`'
   previous_tag:
     description: 'The tag used to calculate next semantic version'
   ancestor_tag:
-    description: 'The ancestor tag based on specific pattern'
+    description: 'The ancestor tag based on specific pattern. For trunk-based model it is always empty'
 
 runs:
   using: 'docker'
@@ -78,6 +86,8 @@ runs:
     - ${{ inputs.minor_regex }}
     - ${{ inputs.major_regex }}
     - ${{ inputs.build_regex }}
+    - ${{ inputs.hotfix_pattern }}
+    - ${{ inputs.exclude_regex }}
     - ${{ inputs.base_version }}
     - ${{ inputs.prefix }}
     - ${{ inputs.prerelease_id }}
