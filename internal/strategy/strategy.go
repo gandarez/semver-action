@@ -1,15 +1,19 @@
 package strategy
 
 import (
+	"errors"
+
 	"github.com/gandarez/semver-action/internal/regex"
 	"github.com/gandarez/semver-action/pkg/git"
+
+	"github.com/blang/semver/v4"
 )
 
 type (
 	// Strategy defines the interface for a strategy.
 	Strategy interface {
 		DetermineBumpStrategy(sourceBranch, destBranch string) (string, string)
-		Tag(config Configuration, gc git.Client) (Result, error)
+		Tag(params TagParams, gc git.Git) (Result, error)
 	}
 
 	// Configuration contains the strategy configuration.
@@ -22,6 +26,19 @@ type (
 		MinorPattern      regex.Regex
 		MajorPattern      regex.Regex
 		BuildPattern      regex.Regex
+		HotfixPattern     regex.Regex
+		ExcludePattern    regex.Regex
+	}
+
+	// TagParams contains the parameters for Tag().
+	TagParams struct {
+		DestBranch   string
+		Method       string
+		Prefix       string
+		PrereleaseID string
+		PreviousTag  string
+		Tag          *semver.Version
+		Version      string
 	}
 
 	// Result contains the result of strategy execution.
@@ -34,21 +51,31 @@ type (
 )
 
 // New returns a new strategy.
-func New(config Configuration) Strategy {
+func New(config Configuration) (Strategy, error) {
 	switch config.BranchingModel {
 	case "git-flow":
 		return &GitFlow{
 			bump:              config.Bump,
-			DevelopBranchName: config.DevelopBranchName,
-			MainBranchName:    config.MainBranchName,
+			developBranchName: config.DevelopBranchName,
+			mainBranchName:    config.MainBranchName,
 			patchPattern:      config.PatchPattern,
 			minorPattern:      config.MinorPattern,
 			majorPattern:      config.MajorPattern,
 			buildPattern:      config.BuildPattern,
-		}
+			hotfixPattern:     config.HotfixPattern,
+			excludePattern:    config.ExcludePattern,
+		}, nil
 	case "trunk-based":
-		return &TrunkBased{}
+		return &TrunkBased{
+			bump:           config.Bump,
+			branchName:     config.MainBranchName,
+			patchPattern:   config.PatchPattern,
+			minorPattern:   config.MinorPattern,
+			majorPattern:   config.MajorPattern,
+			buildPattern:   config.BuildPattern,
+			excludePattern: config.ExcludePattern,
+		}, nil
 	default:
-		return &GitFlow{}
+		return nil, errors.New("invalid branching model")
 	}
 }

@@ -14,10 +14,11 @@ import (
 
 // nolint: gochecknoglobals
 var (
-	branchBugfixPrefixRegex  = regex.MustCompile(`(?i)^bugfix/.+`)
-	branchFeaturePrefixRegex = regex.MustCompile(`(?i)^feature/.+`)
-	branchMajorPrefixRegex   = regex.MustCompile(`(?i)^release/.+`)
-	branchBuildPatternRegex  = regex.MustCompile(`(?i)^(doc(s)?|misc)/.+`)
+	branchBugfixPrefixRegex  = regex.MustCompile(`(?i)^(.+:)?(bugfix/.+)`)
+	branchFeaturePrefixRegex = regex.MustCompile(`(?i)^(.+:)?(feature/.+)`)
+	branchMajorPrefixRegex   = regex.MustCompile(`(?i)^(.+:)?(release/.+)`)
+	branchBuildPatternRegex  = regex.MustCompile(`(?i)^(.+:)?((doc(s)?|misc)/.+)`)
+	branchHotfixPatternRegex = regex.MustCompile(`(?i)^(.+:)?(hotfix/.+)`)
 	commitShaRegex           = regex.MustCompile(`\b[0-9a-f]{5,40}\b`)
 	validBumpStrategies      = []string{"auto", "major", "minor", "patch"}
 	validBranchingModels     = []string{"git-flow", "trunk-based"}
@@ -38,6 +39,9 @@ type Params struct {
 	MinorPattern      regex.Regex
 	MajorPattern      regex.Regex
 	BuildPattern      regex.Regex
+	HotfixPattern     regex.Regex
+	ExcludePattern    regex.Regex
+	Ex                bool
 	Debug             bool
 }
 
@@ -121,6 +125,29 @@ func LoadParams() (Params, error) {
 		}
 
 		buildPattern = compiled
+
+	}
+
+	var hotfixPattern = branchHotfixPatternRegex
+
+	if hotfixPatternStr := actions.GetInput("hotfix_pattern"); hotfixPatternStr != "" {
+		compiled, err := regex.Compile(hotfixPatternStr)
+		if err != nil {
+			return Params{}, fmt.Errorf("invalid hotfix pattern value: %s", hotfixPatternStr)
+		}
+
+		hotfixPattern = compiled
+	}
+
+	var excludePattern regex.Regex
+
+	if excludePatternStr := actions.GetInput("exclude_pattern"); excludePatternStr != "" {
+		compiled, err := regex.Compile(excludePatternStr)
+		if err != nil {
+			return Params{}, fmt.Errorf("invalid exclude pattern value: %s", excludePatternStr)
+		}
+
+		excludePattern = compiled
 	}
 
 	var debug bool
@@ -186,6 +213,8 @@ func LoadParams() (Params, error) {
 		MinorPattern:      minorPattern,
 		MajorPattern:      majorPattern,
 		BuildPattern:      buildPattern,
+		HotfixPattern:     hotfixPattern,
+		ExcludePattern:    excludePattern,
 		Debug:             debug,
 	}, nil
 }
@@ -206,11 +235,16 @@ func (p Params) String() string {
 		baseVersion = p.BaseVersion.String()
 	}
 
+	var excludePattern string
+	if p.ExcludePattern != nil {
+		excludePattern = p.ExcludePattern.String()
+	}
+
 	return fmt.Sprintf(
 		"commit sha: %q, bump: %q, base version: %q, prefix: %q,"+
 			" prerelease id: %q, main branch name: %q, develop branch name: %q,"+
 			" patch pattern: %q, minor pattern: %q, major pattern: %q, build pattern: %q,"+
-			" repo dir: %q, debug: %t",
+			" hotfix pattern %q, exclude pattern: %q, repo dir: %q, debug: %t",
 		p.CommitSha,
 		p.Bump,
 		baseVersion,
@@ -222,6 +256,8 @@ func (p Params) String() string {
 		p.MinorPattern.String(),
 		p.MajorPattern.String(),
 		p.BuildPattern.String(),
+		p.HotfixPattern.String(),
+		excludePattern,
 		p.RepoDir,
 		p.Debug,
 	)

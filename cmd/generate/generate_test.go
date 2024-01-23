@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/gandarez/semver-action/cmd/generate"
+	"github.com/gandarez/semver-action/internal/regex"
 
 	"github.com/blang/semver/v4"
 	"github.com/stretchr/testify/assert"
@@ -100,6 +101,25 @@ func TestTag(t *testing.T) {
 				PreviousTag:  "v0.2.1-pre.1",
 				SemverTag:    "v0.2.1-pre.2",
 				IsPrerelease: true,
+			},
+		},
+		"exclude branch": {
+			CurrentBranch: "develop",
+			LatestTag:     "0.2.1-pre.1",
+			SourceBranch:  "ignore/semver-initial",
+			Params: func() generate.Params {
+				p, err := generate.LoadParams()
+				require.NoError(t, err)
+
+				p.ExcludePattern = regex.MustCompile(`(?i)^ignore/.+`)
+
+				return p
+			},
+			Result: generate.Result{
+				PreviousTag:  "",
+				AncestorTag:  "",
+				SemverTag:    "",
+				IsPrerelease: false,
 			},
 		},
 		"merge develop into master": {

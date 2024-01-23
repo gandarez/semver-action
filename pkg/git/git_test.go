@@ -29,6 +29,76 @@ func TestCleanErr(t *testing.T) {
 	assert.EqualError(t, err, "error")
 }
 
+func TestIsRepo(t *testing.T) {
+	gc := git.New("/path/to/repo")
+	gc.GitCmd = func(env map[string]string, args ...string) (string, error) {
+		assert.Nil(t, env)
+		assert.Equal(t, args, []string{"-C", "/path/to/repo", "rev-parse", "--is-inside-work-tree"})
+
+		return "true", nil
+	}
+
+	value := gc.IsRepo()
+
+	assert.True(t, value)
+}
+
+func TestIsRepo_NotRepo(t *testing.T) {
+	gc := git.New("/path/to/repo")
+	gc.GitCmd = func(env map[string]string, args ...string) (string, error) {
+		assert.Nil(t, env)
+		assert.Equal(t, args, []string{"-C", "/path/to/repo", "rev-parse", "--is-inside-work-tree"})
+
+		return "false", nil
+	}
+
+	value := gc.IsRepo()
+
+	assert.False(t, value)
+}
+
+func TestIsRepoErr(t *testing.T) {
+	gc := git.New("/path/to/repo")
+	gc.GitCmd = func(env map[string]string, args ...string) (string, error) {
+		assert.Nil(t, env)
+		assert.Equal(t, args, []string{"-C", "/path/to/repo", "rev-parse", "--is-inside-work-tree"})
+
+		return "", errors.New("error")
+	}
+
+	value := gc.IsRepo()
+
+	assert.False(t, value)
+}
+
+func TestMakeSafe(t *testing.T) {
+	gc := git.New("/path/to/repo")
+	gc.GitCmd = func(env map[string]string, args ...string) (string, error) {
+		assert.Nil(t, env)
+		assert.Equal(t, args, []string{"config", "--global", "--add", "safe.directory", "/path/to/repo"})
+
+		return "", nil
+	}
+
+	err := gc.MakeSafe()
+
+	assert.NoError(t, err)
+}
+
+func TestMakeSafeErr(t *testing.T) {
+	gc := git.New("/path/to/repo")
+	gc.GitCmd = func(env map[string]string, args ...string) (string, error) {
+		assert.Nil(t, env)
+		assert.Equal(t, args, []string{"config", "--global", "--add", "safe.directory", "/path/to/repo"})
+
+		return "", errors.New("error")
+	}
+
+	err := gc.MakeSafe()
+
+	assert.EqualError(t, err, "failed to set safe current directory")
+}
+
 func TestCurrentBranch(t *testing.T) {
 	gc := git.New("/path/to/repo")
 	gc.GitCmd = func(env map[string]string, args ...string) (string, error) {
@@ -54,7 +124,6 @@ func TestCurrentBranchErr(t *testing.T) {
 	}
 
 	_, err := gc.CurrentBranch()
-	require.Error(t, err)
 
 	assert.EqualError(t, err, "could not get current branch: error")
 }
@@ -84,7 +153,6 @@ func TestSourceBranch_NotValidPullRequestMessage(t *testing.T) {
 	}
 
 	_, err := gc.SourceBranch("81918ffc")
-	require.Error(t, err)
 
 	assert.EqualError(t, err, "no source branch found")
 }
@@ -99,7 +167,6 @@ func TestSourceBranch_NotValiddBranchName(t *testing.T) {
 	}
 
 	_, err := gc.SourceBranch("81918ffc")
-	require.Error(t, err)
 
 	assert.EqualError(t, err, "commit message does not contain expected format: semver-initial")
 }

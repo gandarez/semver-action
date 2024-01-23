@@ -15,7 +15,7 @@ import (
 var mergePRRegex = regexp.MustCompile(`Merge pull request #([0-9])+ from (?P<source>.*)+`) // nolint
 
 type (
-	// Client is an interface to git.
+	// Git is an interface to git.
 	Git interface {
 		CurrentBranch() (string, error)
 		IsRepo() bool
@@ -25,6 +25,7 @@ type (
 		SourceBranch(commitHash string) (string, error)
 	}
 
+	// Client is a git client.
 	Client struct {
 		repoDir string
 		GitCmd  func(env map[string]string, args ...string) (string, error)
@@ -87,7 +88,7 @@ func (c Client) Clean(output string, err error) (string, error) {
 
 // IsRepo returns true if current folder is a git repository.
 func (c Client) IsRepo() bool {
-	out, err := c.run("rev-parse", "--is-inside-work-tree")
+	out, err := c.run("-C", c.repoDir, "rev-parse", "--is-inside-work-tree")
 	return err == nil && strings.TrimSpace(out) == "true"
 }
 
