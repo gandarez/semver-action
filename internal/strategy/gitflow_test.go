@@ -123,105 +123,91 @@ func TestDetermineBumpStrategy_Gitflow(t *testing.T) {
 func TestTag_Gitflow(t *testing.T) {
 	tests := map[string]struct {
 		Method      string
-		PreviousTag string
 		AncestorTag string
 		Tag         *semver.Version
 		Version     string
 		Expected    strategy.Result
 	}{
-		"method build": {
+		"build": {
 			Method:      "build",
-			Tag:         newSemVerPtr(t, "1.2.3-alpha.0"),
-			PreviousTag: "v1.2.2-alpha.0",
-			AncestorTag: "v1.2.3-alpha.0",
+			Tag:         newSemVerPtr(t, "1.2.3-alpha.2"),
+			AncestorTag: "v1.2.3-alpha.1",
 			Expected: strategy.Result{
-				PreviousTag:  "v1.2.2-alpha.0",
-				AncestorTag:  "v1.2.3-alpha.0",
-				SemverTag:    "v1.2.3-alpha.1",
+				AncestorTag:  "v1.2.3-alpha.1",
+				SemverTag:    "v1.2.3-alpha.3",
 				IsPrerelease: true,
 			},
 		},
-		"method major with pre release tag": {
-			Method:      "major",
-			Tag:         newSemVerPtr(t, "2.0.0-alpha.0"),
-			PreviousTag: "v1.2.3-alpha.0",
-			AncestorTag: "v2.0.0-alpha.1",
+		"major with pre release tag": {
+			Method:      "build",
+			Version:     "major",
+			Tag:         newSemVerPtr(t, "1.2.3-alpha.1"),
+			AncestorTag: "v1.2.2-alpha.1",
 			Expected: strategy.Result{
-				PreviousTag:  "v1.2.3-alpha.0",
-				AncestorTag:  "v2.0.0-alpha.1",
-				SemverTag:    "v2.0.0-alpha.0",
+				AncestorTag:  "v1.2.2-alpha.1",
+				SemverTag:    "v2.0.0-alpha.1",
 				IsPrerelease: true,
 			},
 		},
-		"method major without pre release tag": {
+		"major without pre release tag": {
 			Method:      "major",
-			Tag:         newSemVerPtr(t, "2.0.0"),
-			PreviousTag: "v1.2.3",
-			AncestorTag: "v2.0.0",
+			Tag:         newSemVerPtr(t, "1.2.3"),
+			AncestorTag: "v1.2.2",
 			Expected: strategy.Result{
-				PreviousTag:  "v1.2.3",
-				AncestorTag:  "v2.0.0",
+				AncestorTag:  "v1.2.2",
 				SemverTag:    "v2.0.0",
 				IsPrerelease: false,
 			},
 		},
-		"method minor with pre release tag": {
+		"minor with pre release tag": {
+			Method:      "build",
+			Version:     "minor",
+			Tag:         newSemVerPtr(t, "1.2.3-alpha.1"),
+			AncestorTag: "v1.2.2-alpha.1",
+			Expected: strategy.Result{
+				AncestorTag:  "v1.2.2-alpha.1",
+				SemverTag:    "v1.3.0-alpha.1",
+				IsPrerelease: true,
+			},
+		},
+		"minor without pre release tag": {
 			Method:      "minor",
-			Tag:         newSemVerPtr(t, "1.3.0-alpha.0"),
-			PreviousTag: "v1.2.3-alpha.0",
-			AncestorTag: "v1.3.0-alpha.0",
+			Tag:         newSemVerPtr(t, "1.2.3"),
+			AncestorTag: "v1.2.2",
 			Expected: strategy.Result{
-				PreviousTag:  "v1.2.3-alpha.0",
-				AncestorTag:  "v1.3.0-alpha.0",
-				SemverTag:    "v1.3.0-alpha.0",
-				IsPrerelease: true,
-			},
-		},
-		"method ninor without pre release tag": {
-			Method:      "major",
-			Tag:         newSemVerPtr(t, "1.3.0"),
-			PreviousTag: "v1.2.3",
-			AncestorTag: "v1.3.0",
-			Expected: strategy.Result{
-				PreviousTag:  "v1.2.3",
-				AncestorTag:  "v1.3.0",
+				AncestorTag:  "v1.2.2",
 				SemverTag:    "v1.3.0",
 				IsPrerelease: false,
 			},
 		},
-		"method patch with pre release tag": {
-			Method:      "patch",
-			Tag:         newSemVerPtr(t, "1.2.1-alpha.0"),
-			PreviousTag: "v1.2.0-alpha.0",
-			AncestorTag: "v1.2.1-alpha.0",
+		"patch with pre release tag": {
+			Method:      "build",
+			Version:     "patch",
+			Tag:         newSemVerPtr(t, "1.2.3-alpha.1"),
+			AncestorTag: "v1.2.2-alpha.1",
 			Expected: strategy.Result{
-				PreviousTag:  "v1.2.0-alpha.0",
-				AncestorTag:  "v1.2.1-alpha.0",
-				SemverTag:    "v1.2.1-alpha.0",
+				AncestorTag:  "v1.2.2-alpha.1",
+				SemverTag:    "v1.2.4-alpha.1",
 				IsPrerelease: true,
 			},
 		},
-		"method patch without pre release tag": {
+		"patch without pre release tag": {
 			Method:      "patch",
-			Tag:         newSemVerPtr(t, "1.2.1"),
-			PreviousTag: "v1.2.0",
-			AncestorTag: "v1.2.1",
+			Tag:         newSemVerPtr(t, "1.2.3"),
+			AncestorTag: "v1.2.2",
 			Expected: strategy.Result{
-				PreviousTag:  "v1.2.0",
-				AncestorTag:  "v1.2.1",
-				SemverTag:    "v1.2.1",
+				AncestorTag:  "v1.2.2",
+				SemverTag:    "v1.2.4",
 				IsPrerelease: false,
 			},
 		},
-		"method final": {
+		"final version": {
 			Method:      "final",
-			Tag:         newSemVerPtr(t, "1.3.0-alpha.1"),
-			PreviousTag: "v1.2.1-alpha.0",
-			AncestorTag: "v1.3.0-alpha.0",
+			Tag:         newSemVerPtr(t, "1.2.3-alpha.1"),
+			AncestorTag: "v1.2.2-alpha.1",
 			Expected: strategy.Result{
-				PreviousTag:  "v1.2.1-alpha.0",
-				AncestorTag:  "v1.3.0-alpha.0",
-				SemverTag:    "v1.3.0",
+				AncestorTag:  "v1.2.2-alpha.1",
+				SemverTag:    "v1.2.3",
 				IsPrerelease: false,
 			},
 		},
@@ -240,7 +226,6 @@ func TestTag_Gitflow(t *testing.T) {
 				Prefix:       "v",
 				PrereleaseID: "alpha",
 				Method:       test.Method,
-				PreviousTag:  test.PreviousTag,
 				Tag:          test.Tag,
 				Version:      test.Version,
 			}, gc)

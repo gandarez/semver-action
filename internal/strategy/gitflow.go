@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/apex/log"
 	"github.com/gandarez/semver-action/internal/regex"
 	"github.com/gandarez/semver-action/pkg/git"
 
@@ -77,6 +78,30 @@ func (g *GitFlow) Tag(params TagParams, gc git.Git) (Result, error) {
 		isPrerelease   bool
 	)
 
+	if (params.Version == "major" && params.Method == "build") || params.Method == "major" {
+		log.Debug("incrementing major")
+
+		if err := params.Tag.IncrementMajor(); err != nil {
+			return Result{}, fmt.Errorf("failed to increment major version: %s", err)
+		}
+	}
+
+	if (params.Version == "minor" && params.Method == "build") || params.Method == "minor" {
+		log.Debug("incrementing minor")
+
+		if err := params.Tag.IncrementMinor(); err != nil {
+			return Result{}, fmt.Errorf("failed to increment minor version: %s", err)
+		}
+	}
+
+	if (params.Version == "patch" && params.Method == "build") || params.Method == "patch" || params.Method == "hotfix" {
+		log.Debug("incrementing patch")
+
+		if err := params.Tag.IncrementPatch(); err != nil {
+			return Result{}, fmt.Errorf("failed to increment patch version: %s", err)
+		}
+	}
+
 	switch params.Method {
 	case "build":
 		{
@@ -124,9 +149,13 @@ func (g *GitFlow) Tag(params TagParams, gc git.Git) (Result, error) {
 	}
 
 	return Result{
-		PreviousTag:  params.PreviousTag,
 		AncestorTag:  gc.AncestorTag(includePattern, excludePattern, params.DestBranch),
 		SemverTag:    finalTag,
 		IsPrerelease: isPrerelease,
 	}, nil
+}
+
+// Name returns the name of the strategy.
+func (GitFlow) Name() string {
+	return "git-flow"
 }

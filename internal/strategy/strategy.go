@@ -14,6 +14,7 @@ type (
 	Strategy interface {
 		DetermineBumpStrategy(sourceBranch, destBranch string) (string, string)
 		Tag(params TagParams, gc git.Git) (Result, error)
+		Name() string
 	}
 
 	// Configuration contains the strategy configuration.
@@ -36,14 +37,12 @@ type (
 		Method       string
 		Prefix       string
 		PrereleaseID string
-		PreviousTag  string
 		Tag          *semver.Version
 		Version      string
 	}
 
 	// Result contains the result of strategy execution.
 	Result struct {
-		PreviousTag  string
 		AncestorTag  string
 		SemverTag    string
 		IsPrerelease bool

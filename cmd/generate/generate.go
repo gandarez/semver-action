@@ -80,6 +80,8 @@ func Tag(params Params, gc git.Git) (Result, error) {
 		return Result{}, fmt.Errorf("failed to decide branching strategy: %s", err)
 	}
 
+	log.Debugf("using branching strategy: %q\n", branchingStrategy.Name())
+
 	method, version := branchingStrategy.DetermineBumpStrategy(source, dest)
 
 	log.Debugf("method: %q, version: %q", method, version)
@@ -110,36 +112,11 @@ func Tag(params Params, gc git.Git) (Result, error) {
 		tag = params.BaseVersion
 	}
 
-	if (version == "major" && method == "build") || method == "major" {
-		log.Debug("incrementing major")
-
-		if err := tag.IncrementMajor(); err != nil {
-			return Result{}, fmt.Errorf("failed to increment major version: %s", err)
-		}
-	}
-
-	if (version == "minor" && method == "build") || method == "minor" {
-		log.Debug("incrementing minor")
-
-		if err := tag.IncrementMinor(); err != nil {
-			return Result{}, fmt.Errorf("failed to increment minor version: %s", err)
-		}
-	}
-
-	if (version == "patch" && method == "build") || method == "patch" || method == "hotfix" {
-		log.Debug("incrementing patch")
-
-		if err := tag.IncrementPatch(); err != nil {
-			return Result{}, fmt.Errorf("failed to increment patch version: %s", err)
-		}
-	}
-
 	result, err := branchingStrategy.Tag(strategy.TagParams{
 		DestBranch:   dest,
 		Method:       method,
 		Prefix:       params.Prefix,
 		PrereleaseID: params.PrereleaseID,
-		PreviousTag:  previousTag,
 		Tag:          tag,
 		Version:      version,
 	}, gc)
@@ -150,7 +127,7 @@ func Tag(params Params, gc git.Git) (Result, error) {
 	log.Debugf("result: %+v\n", result)
 
 	return Result{
-		PreviousTag:  result.PreviousTag,
+		PreviousTag:  previousTag,
 		AncestorTag:  result.AncestorTag,
 		SemverTag:    result.SemverTag,
 		IsPrerelease: result.IsPrerelease,
