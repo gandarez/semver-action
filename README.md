@@ -185,6 +185,7 @@ Uses `auto` bump strategy to calculate the next semantic version.
 | bump | false | Bump strategy for semantic versioning. Can be `auto`, `major`, `minor`, `patch`. | auto |
 | base_version | false | Version to use as base for the generation, skips version bumps. | |
 | prefix | false | Prefix used to prepend the final version.| v |
+| branching_model | false | Branching model to use. Can be `git-flow` or `trunk-based`. | git-flow |
 | prerelease_id | false | Text representing the prerelease identifier. | pre |
 | main_branch_name | false | The main branch name. | master |
 | develop_branch_name | false | The develop branch name. | develop |
