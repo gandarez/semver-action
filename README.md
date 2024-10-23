@@ -137,12 +137,12 @@ Uses `auto` bump strategy to calculate the next semantic version.
     prerelease_id: "alpha"
     main_branch_name: "main"
     develop_branch_name: "dev"
-    patch_regex: "^fix/.+"
-    minor_regex: "^feat/.+"
-    major_regex: "^major/.+"
-    build_regex: "^build/.+"
-    hotfix_regex: "^hotfix/.+"
-    exclude_regex: "^ignore/.+"
+    patch_pattern: "^fix/.+"
+    minor_pattern: "^feat/.+"
+    major_pattern: "^major/.+"
+    build_pattern: "^build/.+"
+    hotfix_pattern: "^hotfix/.+"
+    exclude_pattern: "^ignore/.+"
 - name: "Created tag"
   run: echo "tag ${{ steps.semver-tag.outputs.semver_tag }}"
 ```
@@ -169,11 +169,11 @@ Uses `auto` bump strategy to calculate the next semantic version.
     branching_model: "trunk-based"
     prefix: "ver"
     main_branch_name: "main"
-    patch_regex: "^fix/.+"
-    minor_regex: "^feat/.+"
-    major_regex: "^major/.+"
-    build_regex: "^build/.+"
-    exclude_regex: "^ignore/.+"
+    patch_pattern: "^fix/.+"
+    minor_pattern: "^feat/.+"
+    major_pattern: "^major/.+"
+    build_pattern: "^build/.+"
+    exclude_pattern: "^ignore/.+"
 - name: "Created tag"
   run: echo "tag ${{ steps.semver-tag.outputs.semver_tag }}"
 ```
@@ -189,12 +189,12 @@ Uses `auto` bump strategy to calculate the next semantic version.
 | prerelease_id | false | Text representing the prerelease identifier. | pre |
 | main_branch_name | false | The main branch name. | master |
 | develop_branch_name | false | The develop branch name. | develop |
-| patch_regex | false | Patch regex to match branch name for patch increment. | (?i)^(.+:)?(bugfix/.+) |
-| minor_regex | false | Minor regex to match branch name for minor increment. | (?i)^(.+:)?(feature/.+) |
-| major_regex | false | Major regex to match branch name for major increment. | (?i)^(.+:)?(release/.+) |
-| build_regex | false | Build regex to match branch name for build increment. | (?i)^(.+:)?((doc(s)?|misc)/.+) |
-| hotfix_regex | false | Hotfix regex to match branch name for patch increment. | (?i)^(.+:)?(hotfix/.+) |
-| exclude_regex | false | Regex to exclude branches from semantic versioning. | |
+| patch_pattern | false | Patch pattern to match branch name for patch increment. | (?i)^(.+:)?(bugfix/.+) |
+| minor_pattern | false | Minor pattern to match branch name for minor increment. | (?i)^(.+:)?(feature/.+) |
+| major_pattern | false | Major pattern to match branch name for major increment. | (?i)^(.+:)?(release/.+) |
+| build_pattern | false | Build pattern to match branch name for build increment. | (?i)^(.+:)?((doc(s)?|misc)/.+) |
+| hotfix_pattern | false | Hotfix pattern to match branch name for patch increment. | (?i)^(.+:)?(hotfix/.+) |
+| exclude_pattern | false | Pattern to exclude branches from semantic versioning. | |
 | repo_dir | false | The repository path. | current dir |
 | debug | false | Enable debug mode. | false |
 

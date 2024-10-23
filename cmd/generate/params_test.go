@@ -373,6 +373,7 @@ func TestLoadParams_String(t *testing.T) {
 	os.Setenv("INPUT_BUILD_PATTERN", "^build/.+")
 	os.Setenv("INPUT_HOTFIX_PATTERN", "^hotfix/.+")
 	os.Setenv("INPUT_EXCLUDE_PATTERN", "^ignore/.+")
+	os.Setenv("INPUT_DEBUG", "true")
 
 	defer func() {
 		os.Unsetenv("INPUT_BUMP")
@@ -389,6 +390,7 @@ func TestLoadParams_String(t *testing.T) {
 		os.Unsetenv("INPUT_BUILD_PATTERN")
 		os.Unsetenv("INPUT_HOTFIX_PATTERN")
 		os.Unsetenv("INPUT_EXCLUDE_PATTERN")
+		os.Unsetenv("INPUT_DEBUG")
 	}()
 
 	params, err := generate.LoadParams()
@@ -408,6 +410,6 @@ func TestLoadParams_String(t *testing.T) {
 		` hotfix pattern "^hotfix/.+",`+
 		` exclude pattern: "^ignore/.+",`+
 		` repo dir: "/var/tmp/project",`+
-		` debug: false`,
+		` debug: true`,
 		params.String())
 }
