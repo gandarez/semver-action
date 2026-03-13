@@ -24,7 +24,7 @@ else
 endif
 
 build-darwin:
-	GOOS=darwin GOARCH=amd64 $(GOBUILD) -o ./build/darwin/amd64/$(BINARY_NAME) -v
+	GOOS=darwin GOARCH=arm64 $(GOBUILD) -o ./build/darwin/arm64/$(BINARY_NAME) -v
 
 build-linux:
 	GOOS=linux GOARCH=amd64 $(GOBUILD) -o ./build/linux/amd64/$(BINARY_NAME) -v

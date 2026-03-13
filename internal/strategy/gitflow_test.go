@@ -41,12 +41,12 @@ func TestDetermineBumpStrategy_Gitflow(t *testing.T) {
 			ExpectedMethod:  "build",
 			ExpectedVersion: "major",
 		},
-		"source branch build, dest branch develop and auto bump": {
+		"source branch doc, dest branch develop and auto bump": {
 			SourceBranch:    "doc/some",
 			DestBranch:      "develop",
 			Bump:            "auto",
 			ExpectedMethod:  "build",
-			ExpectedVersion: "",
+			ExpectedVersion: "build",
 		},
 		"source branch hotfix, dest branch master and auto bump": {
 			SourceBranch:   "hotfix/some",

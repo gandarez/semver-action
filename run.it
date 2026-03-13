@@ -1,0 +1,8 @@
+BRANCHING_MODEL="trunk-based"; PREFIX="v"; MAIN_BRANCH_NAME="main"; REPO_DIR="/Users/gandarez/development/git/wakatime/desktop-wakatime"; DEBUG="true"; ./build/darwin/arm64/semver
+
+
+
+
+[TEST BUG IN WAKATIME DESKTOP]
+INPUT_BRANCHING_MODEL="trunk-based" INPUT_PREFIX="v" INPUT_MAIN_BRANCH_NAME="main" INPUT_MAJOR_PATTERN="^major/.+" GITHUB_SHA="055a9757f54d169b9354483d9a1ea7e1249b61bc" INPUT_REPO_DIR="/Users/gandarez/development/git/wakatime/desktop-wakatime" INPUT_DEBUG="true" ./build/darwin/arm64/semver
+

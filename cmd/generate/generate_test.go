@@ -55,9 +55,84 @@ func TestTag(t *testing.T) {
 				IsPrerelease: false,
 			},
 		},
+		"doc branch into develop": {
+			CurrentBranch: "develop",
+			LatestTag:     "v0.2.1-pre.1",
+			AncestorTag:   "v0.2.0-pre.1",
+			SourceBranch:  "doc/semver-initial",
+			Params: func() generate.Params {
+				p, err := generate.LoadParams()
+				require.NoError(t, err)
+
+				return p
+			},
+			Result: generate.Result{
+				PreviousTag:  "v0.2.1-pre.1",
+				AncestorTag:  "v0.2.0-pre.1",
+				SemverTag:    "v0.2.1-pre.2",
+				IsPrerelease: true,
+			},
+		},
+		"doc branch into develop when latest tag is equal to ancestor develop tag excluding prerelease part": {
+			CurrentBranch: "develop",
+			LatestTag:     "v0.2.1",
+			AncestorTag:   "v0.2.1-pre.2",
+			SourceBranch:  "doc/some",
+			Params: func() generate.Params {
+				p, err := generate.LoadParams()
+				require.NoError(t, err)
+
+				// TODO: Maybe its not needed
+				p.CommitSha = "81918ffc"
+
+				return p
+			},
+			Result: generate.Result{
+				PreviousTag:  "v0.2.1",
+				AncestorTag:  "v0.2.1-pre.2",
+				SemverTag:    "v0.2.1-pre.3",
+				IsPrerelease: true,
+			},
+		},
+		"misc branch into develop": {
+			CurrentBranch: "develop",
+			LatestTag:     "v0.2.1-pre.1",
+			AncestorTag:   "v0.2.0-pre.1",
+			SourceBranch:  "misc/semver-initial",
+			Params: func() generate.Params {
+				p, err := generate.LoadParams()
+				require.NoError(t, err)
+
+				return p
+			},
+			Result: generate.Result{
+				PreviousTag:  "v0.2.1-pre.1",
+				AncestorTag:  "v0.2.0-pre.1",
+				SemverTag:    "v0.2.1-pre.2",
+				IsPrerelease: true,
+			},
+		},
+		"upstream misc branch into develop": {
+			CurrentBranch: "develop",
+			LatestTag:     "v0.2.1-pre.1",
+			AncestorTag:   "v0.2.0-pre.1",
+			SourceBranch:  "some-user:misc/some",
+			Params: func() generate.Params {
+				p, err := generate.LoadParams()
+				require.NoError(t, err)
+
+				return p
+			},
+			Result: generate.Result{
+				PreviousTag:  "v0.2.1-pre.1",
+				AncestorTag:  "v0.2.0-pre.1",
+				SemverTag:    "v0.2.1-pre.2",
+				IsPrerelease: true,
+			},
+		},
 		"feature branch into develop": {
 			CurrentBranch: "develop",
-			LatestTag:     "0.2.1",
+			LatestTag:     "v0.2.1",
 			SourceBranch:  "feature/semver-initial",
 			Params: func() generate.Params {
 				p, err := generate.LoadParams()
@@ -71,10 +146,10 @@ func TestTag(t *testing.T) {
 				IsPrerelease: true,
 			},
 		},
-		"doc branch into develop": {
+		"upstream feature branch into develop": {
 			CurrentBranch: "develop",
-			LatestTag:     "0.2.1-pre.1",
-			SourceBranch:  "doc/semver-initial",
+			LatestTag:     "v0.2.1",
+			SourceBranch:  "some-user:feature/some",
 			Params: func() generate.Params {
 				p, err := generate.LoadParams()
 				require.NoError(t, err)
@@ -82,15 +157,15 @@ func TestTag(t *testing.T) {
 				return p
 			},
 			Result: generate.Result{
-				PreviousTag:  "v0.2.1-pre.1",
-				SemverTag:    "v0.2.1-pre.2",
+				PreviousTag:  "v0.2.1",
+				SemverTag:    "v0.3.0-pre.1",
 				IsPrerelease: true,
 			},
 		},
-		"misc branch into develop": {
+		"bugfix branch into develop": {
 			CurrentBranch: "develop",
-			LatestTag:     "0.2.1-pre.1",
-			SourceBranch:  "misc/semver-initial",
+			LatestTag:     "v0.2.1",
+			SourceBranch:  "bugfix/some",
 			Params: func() generate.Params {
 				p, err := generate.LoadParams()
 				require.NoError(t, err)
@@ -98,14 +173,46 @@ func TestTag(t *testing.T) {
 				return p
 			},
 			Result: generate.Result{
-				PreviousTag:  "v0.2.1-pre.1",
-				SemverTag:    "v0.2.1-pre.2",
+				PreviousTag:  "v0.2.1",
+				SemverTag:    "v0.2.2-pre.1",
 				IsPrerelease: true,
+			},
+		},
+		"upstream bugfix branch into develop": {
+			CurrentBranch: "develop",
+			LatestTag:     "v0.2.1",
+			SourceBranch:  "some-user:bugfix/some",
+			Params: func() generate.Params {
+				p, err := generate.LoadParams()
+				require.NoError(t, err)
+
+				return p
+			},
+			Result: generate.Result{
+				PreviousTag:  "v0.2.1",
+				SemverTag:    "v0.2.2-pre.1",
+				IsPrerelease: true,
+			},
+		},
+		"hotfix branch into master": {
+			CurrentBranch: "master",
+			LatestTag:     "v0.2.1",
+			SourceBranch:  "hotfix/some",
+			Params: func() generate.Params {
+				p, err := generate.LoadParams()
+				require.NoError(t, err)
+
+				return p
+			},
+			Result: generate.Result{
+				PreviousTag:  "v0.2.1",
+				SemverTag:    "v0.2.2",
+				IsPrerelease: false,
 			},
 		},
 		"exclude branch": {
 			CurrentBranch: "develop",
-			LatestTag:     "0.2.1-pre.1",
+			LatestTag:     "v0.2.1-pre.1",
 			SourceBranch:  "ignore/semver-initial",
 			Params: func() generate.Params {
 				p, err := generate.LoadParams()

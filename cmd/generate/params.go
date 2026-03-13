@@ -41,7 +41,6 @@ type Params struct {
 	BuildPattern      regex.Regex
 	HotfixPattern     regex.Regex
 	ExcludePattern    regex.Regex
-	Ex                bool
 	Debug             bool
 }
 

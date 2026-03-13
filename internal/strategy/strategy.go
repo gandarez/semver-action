@@ -12,6 +12,8 @@ import (
 type (
 	// Strategy defines the interface for a strategy.
 	Strategy interface {
+		// DetermineBumpStrategy determines the strategy for semver to bump product version.
+		// It returns the method to bump and the version part to bump, if applicable.
 		DetermineBumpStrategy(sourceBranch, destBranch string) (string, string)
 		Tag(params TagParams, gc git.Git) (Result, error)
 		Name() string
@@ -37,6 +39,7 @@ type (
 		Method       string
 		Prefix       string
 		PrereleaseID string
+		LatestTag    string
 		Tag          *semver.Version
 		Version      string
 	}

@@ -5,10 +5,10 @@ import (
 	"strconv"
 
 	"github.com/apex/log"
+	"github.com/blang/semver/v4"
+
 	"github.com/gandarez/semver-action/internal/regex"
 	"github.com/gandarez/semver-action/pkg/git"
-
-	"github.com/blang/semver/v4"
 )
 
 // GitFlow implements the git-flow strategy.
@@ -53,7 +53,7 @@ func (g *GitFlow) DetermineBumpStrategy(sourceBranch, destBranch string) (string
 
 	// build into develop branch
 	if g.buildPattern.MatchString(sourceBranch) && destBranch == g.developBranchName {
-		return "build", ""
+		return "build", "build"
 	}
 
 	// hotfix into main branch
@@ -71,13 +71,6 @@ func (g *GitFlow) DetermineBumpStrategy(sourceBranch, destBranch string) (string
 
 // Tag implements the Strategy interface.
 func (g *GitFlow) Tag(params TagParams, gc git.Git) (Result, error) {
-	var (
-		finalTag       string
-		includePattern string
-		excludePattern string
-		isPrerelease   bool
-	)
-
 	if (params.Version == "major" && params.Method == "build") || params.Method == "major" {
 		log.Debug("incrementing major")
 
@@ -102,6 +95,33 @@ func (g *GitFlow) Tag(params TagParams, gc git.Git) (Result, error) {
 		}
 	}
 
+	// If branch matches the build pattern and the latest tag is equal to the
+	// ancestor develop tag excluding prerelease part, then it will use ancestor one instead.
+	if params.Version == "build" && params.Method == "build" {
+		log.Debug("using acestor tag")
+
+		ancestorDevelopTag := gc.AncestorTag(
+			fmt.Sprintf("%s[0-9]*-%s*", params.Prefix, params.PrereleaseID),
+			"",
+			params.DestBranch)
+
+		parsed, err := semver.ParseTolerant(ancestorDevelopTag)
+		if err != nil {
+			return Result{}, fmt.Errorf("failed to parse tag %q or not valid semantic version: %s", params.LatestTag, err)
+		}
+
+		if params.Tag.String() == parsed.FinalizeVersion() {
+			params.Tag = &parsed
+		}
+	}
+
+	var (
+		finalTag       string
+		includePattern string
+		excludePattern string
+		isPrerelease   bool
+	)
+
 	switch params.Method {
 	case "build":
 		{
@@ -110,7 +130,7 @@ func (g *GitFlow) Tag(params TagParams, gc git.Git) (Result, error) {
 
 			buildNumber, _ := semver.NewPRVersion("0")
 
-			if len(params.Tag.Pre) > 1 && params.Version == "" {
+			if len(params.Tag.Pre) > 1 && (params.Version == "" || params.Version == "build") {
 				buildNumber = params.Tag.Pre[1]
 			}
 

@@ -117,6 +117,7 @@ func Tag(params Params, gc git.Git) (Result, error) {
 		Method:       method,
 		Prefix:       params.Prefix,
 		PrereleaseID: params.PrereleaseID,
+		LatestTag:    latestTag,
 		Tag:          tag,
 		Version:      version,
 	}, gc)
