@@ -80,8 +80,8 @@ func TestLoadParams_DevelopBranchName_Default(t *testing.T) {
 }
 
 func TestLoadParams_PatchPattern(t *testing.T) {
-	os.Setenv("INPUT_PATCH_PATTERN", "^fix/.+")
-	defer os.Unsetenv("INPUT_PATCH_PATTERN")
+	os.Setenv("INPUT_PATCH_REGEX", "^fix/.+")
+	defer os.Unsetenv("INPUT_PATCH_REGEX")
 
 	params, err := generate.LoadParams()
 	require.NoError(t, err)
@@ -90,8 +90,8 @@ func TestLoadParams_PatchPattern(t *testing.T) {
 }
 
 func TestLoadParams_PatchPattern_Invalid(t *testing.T) {
-	os.Setenv("INPUT_PATCH_PATTERN", "[")
-	defer os.Unsetenv("INPUT_PATCH_PATTERN")
+	os.Setenv("INPUT_PATCH_REGEX", "[")
+	defer os.Unsetenv("INPUT_PATCH_REGEX")
 
 	_, err := generate.LoadParams()
 	require.Error(t, err)
@@ -105,8 +105,8 @@ func TestLoadParams_PatchPattern_Default(t *testing.T) {
 }
 
 func TestLoadParams_MinorPattern(t *testing.T) {
-	os.Setenv("INPUT_MINOR_PATTERN", "^feat/.+")
-	defer os.Unsetenv("INPUT_MINOR_PATTERN")
+	os.Setenv("INPUT_MINOR_REGEX", "^feat/.+")
+	defer os.Unsetenv("INPUT_MINOR_REGEX")
 
 	params, err := generate.LoadParams()
 	require.NoError(t, err)
@@ -115,8 +115,8 @@ func TestLoadParams_MinorPattern(t *testing.T) {
 }
 
 func TestLoadParams_MinorPattern_Invalid(t *testing.T) {
-	os.Setenv("INPUT_MINOR_PATTERN", "[")
-	defer os.Unsetenv("INPUT_MINOR_PATTERN")
+	os.Setenv("INPUT_MINOR_REGEX", "[")
+	defer os.Unsetenv("INPUT_MINOR_REGEX")
 
 	_, err := generate.LoadParams()
 	require.Error(t, err)
@@ -130,8 +130,8 @@ func TestLoadParams_MinorPattern_Default(t *testing.T) {
 }
 
 func TestLoadParams_MajorPattern(t *testing.T) {
-	os.Setenv("INPUT_MAJOR_PATTERN", "^major/.+")
-	defer os.Unsetenv("INPUT_MAJOR_PATTERN")
+	os.Setenv("INPUT_MAJOR_REGEX", "^major/.+")
+	defer os.Unsetenv("INPUT_MAJOR_REGEX")
 
 	params, err := generate.LoadParams()
 	require.NoError(t, err)
@@ -140,8 +140,8 @@ func TestLoadParams_MajorPattern(t *testing.T) {
 }
 
 func TestLoadParams_MajorPattern_Invalid(t *testing.T) {
-	os.Setenv("INPUT_MAJOR_PATTERN", "[")
-	defer os.Unsetenv("INPUT_MAJOR_PATTERN")
+	os.Setenv("INPUT_MAJOR_REGEX", "[")
+	defer os.Unsetenv("INPUT_MAJOR_REGEX")
 
 	_, err := generate.LoadParams()
 	require.Error(t, err)
@@ -155,8 +155,8 @@ func TestLoadParams_MajorPattern_Default(t *testing.T) {
 }
 
 func TestLoadParams_BuildPattern(t *testing.T) {
-	os.Setenv("INPUT_BUILD_PATTERN", "^build/.+")
-	defer os.Unsetenv("INPUT_BUILD_PATTERN")
+	os.Setenv("INPUT_BUILD_REGEX", "^build/.+")
+	defer os.Unsetenv("INPUT_BUILD_REGEX")
 
 	params, err := generate.LoadParams()
 	require.NoError(t, err)
@@ -165,8 +165,8 @@ func TestLoadParams_BuildPattern(t *testing.T) {
 }
 
 func TestLoadParams_BuildPattern_Invalid(t *testing.T) {
-	os.Setenv("INPUT_BUILD_PATTERN", "[")
-	defer os.Unsetenv("INPUT_BUILD_PATTERN")
+	os.Setenv("INPUT_BUILD_REGEX", "[")
+	defer os.Unsetenv("INPUT_BUILD_REGEX")
 
 	_, err := generate.LoadParams()
 	require.Error(t, err)
@@ -180,8 +180,8 @@ func TestLoadParams_BuildPattern_Default(t *testing.T) {
 }
 
 func TestLoadParams_HotfixPattern(t *testing.T) {
-	os.Setenv("INPUT_HOTFIX_PATTERN", "^hotfix/.+")
-	defer os.Unsetenv("INPUT_HOTFIX_PATTERN")
+	os.Setenv("INPUT_HOTFIX_REGEX", "^hotfix/.+")
+	defer os.Unsetenv("INPUT_HOTFIX_REGEX")
 
 	params, err := generate.LoadParams()
 	require.NoError(t, err)
@@ -190,8 +190,8 @@ func TestLoadParams_HotfixPattern(t *testing.T) {
 }
 
 func TestLoadParams_HotfixPattern_Invalid(t *testing.T) {
-	os.Setenv("INPUT_HOTFIX_PATTERN", "[")
-	defer os.Unsetenv("INPUT_HOTFIX_PATTERN")
+	os.Setenv("INPUT_HOTFIX_REGEX", "[")
+	defer os.Unsetenv("INPUT_HOTFIX_REGEX")
 
 	_, err := generate.LoadParams()
 	require.Error(t, err)
@@ -205,8 +205,8 @@ func TestLoadParams_HotfixPattern_Default(t *testing.T) {
 }
 
 func TestLoadParams_ExcludePattern(t *testing.T) {
-	os.Setenv("INPUT_EXCLUDE_PATTERN", "^ignore/.+")
-	defer os.Unsetenv("INPUT_EXCLUDE_PATTERN")
+	os.Setenv("INPUT_EXCLUDE_REGEX", "^ignore/.+")
+	defer os.Unsetenv("INPUT_EXCLUDE_REGEX")
 
 	params, err := generate.LoadParams()
 	require.NoError(t, err)
@@ -215,8 +215,8 @@ func TestLoadParams_ExcludePattern(t *testing.T) {
 }
 
 func TestLoadParams_ExcludePattern_Invalid(t *testing.T) {
-	os.Setenv("INPUT_EXCLUDE_PATTERN", "[")
-	defer os.Unsetenv("INPUT_EXCLUDE_PATTERN")
+	os.Setenv("INPUT_EXCLUDE_REGEX", "[")
+	defer os.Unsetenv("INPUT_EXCLUDE_REGEX")
 
 	_, err := generate.LoadParams()
 	require.Error(t, err)
@@ -367,12 +367,12 @@ func TestLoadParams_String(t *testing.T) {
 	os.Setenv("INPUT_DEVELOP_BRANCH_NAME", "dev")
 	os.Setenv("INPUT_REPO_DIR", "/var/tmp/project")
 	os.Setenv("GITHUB_SHA", "2f08f7b455ec64741d135216d19d7e0c4dd46458")
-	os.Setenv("INPUT_PATCH_PATTERN", "^bugfix/.+")
-	os.Setenv("INPUT_MINOR_PATTERN", "^feat/.+")
-	os.Setenv("INPUT_MAJOR_PATTERN", "^major/.+")
-	os.Setenv("INPUT_BUILD_PATTERN", "^build/.+")
-	os.Setenv("INPUT_HOTFIX_PATTERN", "^hotfix/.+")
-	os.Setenv("INPUT_EXCLUDE_PATTERN", "^ignore/.+")
+	os.Setenv("INPUT_PATCH_REGEX", "^bugfix/.+")
+	os.Setenv("INPUT_MINOR_REGEX", "^feat/.+")
+	os.Setenv("INPUT_MAJOR_REGEX", "^major/.+")
+	os.Setenv("INPUT_BUILD_REGEX", "^build/.+")
+	os.Setenv("INPUT_HOTFIX_REGEX", "^hotfix/.+")
+	os.Setenv("INPUT_EXCLUDE_REGEX", "^ignore/.+")
 	os.Setenv("INPUT_DEBUG", "true")
 
 	defer func() {
@@ -384,12 +384,12 @@ func TestLoadParams_String(t *testing.T) {
 		os.Unsetenv("INPUT_DEVELOP_BRANCH_NAME")
 		os.Unsetenv("INPUT_REPO_DIR")
 		os.Unsetenv("GITHUB_SHA")
-		os.Unsetenv("INPUT_PATCH_PATTERN")
-		os.Unsetenv("INPUT_MINOR_PATTERN")
-		os.Unsetenv("INPUT_MAJOR_PATTERN")
-		os.Unsetenv("INPUT_BUILD_PATTERN")
-		os.Unsetenv("INPUT_HOTFIX_PATTERN")
-		os.Unsetenv("INPUT_EXCLUDE_PATTERN")
+		os.Unsetenv("INPUT_PATCH_REGEX")
+		os.Unsetenv("INPUT_MINOR_REGEX")
+		os.Unsetenv("INPUT_MAJOR_REGEX")
+		os.Unsetenv("INPUT_BUILD_REGEX")
+		os.Unsetenv("INPUT_HOTFIX_REGEX")
+		os.Unsetenv("INPUT_EXCLUDE_REGEX")
 		os.Unsetenv("INPUT_DEBUG")
 	}()
 

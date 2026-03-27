@@ -206,3 +206,7 @@ Uses `auto` bump strategy to calculate the next semantic version.
 | is_prerelease | True if calculated tag is pre-release. For trunk-based model it is always `false`. |
 | previous_tag  | The tag used to calculate next semantic version. |
 | ancestor_tag  | The ancestor tag based on specific pattern. For trunk-based model it is always empty .|
+
+## Troubleshooting
+
+For common issues and solutions, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
