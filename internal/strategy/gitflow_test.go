@@ -235,3 +235,34 @@ func TestTag_Gitflow(t *testing.T) {
 		})
 	}
 }
+
+func TestTag_Gitflow_FinalPrefersReachablePrerelease(t *testing.T) {
+	gf := strategy.GitFlow{}
+
+	gc := &gitClientMock{
+		AncestorTagFn: func(include, exclude, branch string) string {
+			assert.Equal(t, "release", branch)
+
+			if include == "v[0-9]*-alpha*" && exclude == "" {
+				return "v2.0.1-alpha.1"
+			}
+
+			return "v2.0.0"
+		},
+	}
+
+	result, err := gf.Tag(strategy.TagParams{
+		DestBranch:   "release",
+		Prefix:       "v",
+		PrereleaseID: "alpha",
+		Method:       "final",
+		Tag:          newSemVerPtr(t, "2.0.0"),
+	}, gc)
+	require.NoError(t, err)
+
+	assert.Equal(t, strategy.Result{
+		AncestorTag:  "v2.0.1-alpha.1",
+		SemverTag:    "v2.0.1",
+		IsPrerelease: false,
+	}, result)
+}

@@ -116,6 +116,7 @@ func (g *GitFlow) Tag(params TagParams, gc git.Git) (Result, error) {
 	}
 
 	var (
+		ancestorTag    string
 		finalTag       string
 		includePattern string
 		excludePattern string
@@ -163,13 +164,32 @@ func (g *GitFlow) Tag(params TagParams, gc git.Git) (Result, error) {
 
 		finalTag = params.Prefix + params.Tag.String()
 	default:
-		includePattern = fmt.Sprintf("%s[0-9]*", params.Prefix)
-		excludePattern = fmt.Sprintf("%s[0-9]*-%s*", params.Prefix, params.PrereleaseID)
+		includePattern = fmt.Sprintf("%s[0-9]*-%s*", params.Prefix, params.PrereleaseID)
+
+		// Final releases should prefer the latest reachable prerelease tag instead
+		// of the closest stable tag on the merge commit.
+		if len(params.Tag.Pre) == 0 {
+			ancestorTag = gc.AncestorTag(includePattern, "", params.DestBranch)
+			parsed, err := semver.ParseTolerant(ancestorTag)
+			if err == nil {
+				params.Tag = &parsed
+			}
+		}
+
+		if ancestorTag == "" {
+			includePattern = fmt.Sprintf("%s[0-9]*", params.Prefix)
+			excludePattern = fmt.Sprintf("%s[0-9]*-%s*", params.Prefix, params.PrereleaseID)
+		}
+
 		finalTag = params.Prefix + params.Tag.FinalizeVersion()
 	}
 
+	if ancestorTag == "" {
+		ancestorTag = gc.AncestorTag(includePattern, excludePattern, params.DestBranch)
+	}
+
 	return Result{
-		AncestorTag:  gc.AncestorTag(includePattern, excludePattern, params.DestBranch),
+		AncestorTag:  ancestorTag,
 		SemverTag:    finalTag,
 		IsPrerelease: isPrerelease,
 	}, nil
