@@ -86,7 +86,7 @@ runs:
     - ${{ inputs.minor_regex }}
     - ${{ inputs.major_regex }}
     - ${{ inputs.build_regex }}
-    - ${{ inputs.hotfix_pattern }}
+    - ${{ inputs.hotfix_regex }}
     - ${{ inputs.exclude_regex }}
     - ${{ inputs.base_version }}
     - ${{ inputs.prefix }}
