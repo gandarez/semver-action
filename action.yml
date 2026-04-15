@@ -30,7 +30,7 @@ inputs:
     description: 'Build regex to match branch name for build increment. Defaults to `(?i)^(.+:)?((doc(s)?|misc)/.+)`'
     default: '(?i)^(.+:)?((doc(s)?|misc)/.+)'
     required: false
-  hotfix_pattern:
+  hotfix_regex:
     description: 'Hotfix regex to match branch name for patch increment. Defaults to `(?i)^(.+:)?(hotfix/.+)`'
     default: '(?i)^(.+:)?(hotfix/.+)'
     required: false
