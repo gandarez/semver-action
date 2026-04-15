@@ -403,6 +403,50 @@ func TestTag_MakeSafeErr(t *testing.T) {
 	assert.EqualError(t, err, "failed to make safe: error")
 }
 
+func TestTag_FinalReleasePrefersReachablePrerelease(t *testing.T) {
+	p, err := generate.LoadParams()
+	require.NoError(t, err)
+	p.MainBranchName = "release"
+
+	gc := &gitClientMock{
+		CurrentBranchFn: func() (string, error) {
+			return "release", nil
+		},
+		IsRepoFn: func() bool {
+			return true
+		},
+		MakeSafeFn: func() error {
+			return nil
+		},
+		LatestTagFn: func() string {
+			return "v2.0.0"
+		},
+		AncestorTagFn: func(include, exclude, branch string) string {
+			assert.Equal(t, "release", branch)
+
+			if include == "v[0-9]*-pre*" && exclude == "" {
+				return "v2.0.1-pre.1"
+			}
+
+			return "v2.0.0"
+		},
+		SourceBranchFn: func(commitHash string) (string, error) {
+			assert.Equal(t, p.CommitSha, commitHash)
+			return "develop", nil
+		},
+	}
+
+	result, err := generate.Tag(p, gc)
+	require.NoError(t, err)
+
+	assert.Equal(t, generate.Result{
+		PreviousTag:  "v2.0.0",
+		AncestorTag:  "v2.0.1-pre.1",
+		SemverTag:    "v2.0.1",
+		IsPrerelease: false,
+	}, result)
+}
+
 type gitClientMock struct {
 	CurrentBranchFn        func() (string, error)
 	CurrentBranchFnInvoked int
