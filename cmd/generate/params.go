@@ -58,13 +58,13 @@ func LoadParams() (Params, error) {
 		commitSha = commitShaStr
 	}
 
-	var repoDir string = "."
+	repoDir := "."
 
 	if repoDirStr := actions.GetInput("repo_dir"); repoDirStr != "" {
 		repoDir = repoDirStr
 	}
 
-	var bump string = "auto"
+	bump := "auto"
 
 	if bumpStr := actions.GetInput("bump"); bumpStr != "" {
 		if !stringInSlice(bumpStr, validBumpStrategies) {
@@ -74,7 +74,7 @@ func LoadParams() (Params, error) {
 		bump = bumpStr
 	}
 
-	var branchingModel string = "git-flow"
+	branchingModel := "git-flow"
 
 	if branchingModelStr := actions.GetInput("branching_model"); branchingModelStr != "" {
 		if !stringInSlice(branchingModelStr, validBranchingModels) {
@@ -165,7 +165,7 @@ func LoadParams() (Params, error) {
 		debug = parsed
 	}
 
-	var prefix string = "v"
+	prefix := "v"
 
 	if prefixStr := actions.GetInput("prefix"); prefixStr != "" {
 		prefix = prefixStr
@@ -185,19 +185,19 @@ func LoadParams() (Params, error) {
 		baseVersion = &parsed
 	}
 
-	var mainBranchName string = "master"
+	mainBranchName := "master"
 
 	if mainBranchNameStr := actions.GetInput("main_branch_name"); mainBranchNameStr != "" {
 		mainBranchName = mainBranchNameStr
 	}
 
-	var developBranchName string = "develop"
+	developBranchName := "develop"
 
 	if developBranchNameStr := actions.GetInput("develop_branch_name"); developBranchNameStr != "" {
 		developBranchName = developBranchNameStr
 	}
 
-	var prereleaseID string = "pre"
+	prereleaseID := "pre"
 
 	if prereleaseIDStr := actions.GetInput("prerelease_id"); prereleaseIDStr != "" {
 		prereleaseID = prereleaseIDStr
@@ -250,7 +250,8 @@ func (p Params) String() string {
 		"commit sha: %q, bump: %q, base version: %q, prefix: %q,"+
 			" prerelease id: %q, main branch name: %q, develop branch name: %q,"+
 			" patch pattern: %q, minor pattern: %q, major pattern: %q, build pattern: %q,"+
-			" hotfix pattern %q, exclude pattern: %q, repo dir: %q, debug: %t",
+			" hotfix pattern %q, exclude pattern: %q, include tag pattern: %q,"+
+			" exclude tag pattern: %q, repo dir: %q, debug: %t",
 		p.CommitSha,
 		p.Bump,
 		baseVersion,
@@ -264,6 +265,8 @@ func (p Params) String() string {
 		p.BuildPattern.String(),
 		p.HotfixPattern.String(),
 		excludePattern,
+		p.IncludeTagPattern,
+		p.ExcludeTagPattern,
 		p.RepoDir,
 		p.Debug,
 	)

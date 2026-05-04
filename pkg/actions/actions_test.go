@@ -30,8 +30,8 @@ func TestGetInput(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			os.Setenv(test.NameActions, test.Expected)
-			defer os.Unsetenv(test.NameActions)
+			require.NoError(t, os.Setenv(test.NameActions, test.Expected))
+			defer func() { require.NoError(t, os.Unsetenv(test.NameActions)) }()
 
 			value := actions.GetInput(test.Name)
 
@@ -44,7 +44,7 @@ func TestSetOutput(t *testing.T) {
 	outputFile, err := os.CreateTemp(t.TempDir(), "")
 	require.NoError(t, err)
 
-	defer outputFile.Close()
+	defer func() { require.NoError(t, outputFile.Close()) }()
 
 	err = actions.SetOutput(outputFile.Name(), "SOME_OUTPUT", "some-value")
 	require.NoError(t, err)

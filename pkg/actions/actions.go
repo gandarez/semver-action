@@ -35,7 +35,7 @@ func SetOutput(fp, key, value string) error {
 
 	delimiter := fmt.Sprintf("ghadelimiter_%s", id)
 
-	if _, err := f.WriteString(fmt.Sprintf("%s<<%s\n%v\n%s\n", key, delimiter, value, delimiter)); err != nil {
+	if _, err := fmt.Fprintf(f, "%s<<%s\n%v\n%s\n", key, delimiter, value, delimiter); err != nil {
 		return fmt.Errorf("failed to write %s to output: %s", key, err)
 	}
 
