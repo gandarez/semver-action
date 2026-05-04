@@ -92,7 +92,7 @@ func Tag(params Params, gc git.Git) (Result, error) {
 		return Result{}, nil
 	}
 
-	latestTag := gc.LatestTag()
+	latestTag := gc.LatestTag(params.IncludeTagPattern, params.ExcludeTagPattern)
 
 	var tag *semver.Version
 

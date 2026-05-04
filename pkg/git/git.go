@@ -20,7 +20,7 @@ type (
 		CurrentBranch() (string, error)
 		IsRepo() bool
 		MakeSafe() error
-		LatestTag() string
+		LatestTag(include, exclude string) string
 		AncestorTag(include, exclude, branch string) string
 		SourceBranch(commitHash string) (string, error)
 	}
@@ -146,12 +146,31 @@ func (c Client) SourceBranch(commitHash string) (string, error) {
 	return splitted[1], nil
 }
 
-// LatestTag returns the latest tag if found.
-func (c Client) LatestTag() string {
-	result, _ := c.Clean(c.run("-C", c.repoDir, "tag", "--points-at", "HEAD", "--sort", "-version:creatordate"))
-	if result == "" {
-		result, _ = c.Clean(c.run("-C", c.repoDir, "describe", "--tags", "--abbrev=0"))
+// LatestTag returns the latest tag matching include and not matching exclude, if found.
+// include and exclude accept git glob patterns; pass empty string to skip the respective filter.
+func (c Client) LatestTag(include, exclude string) string {
+	args := []string{"-C", c.repoDir, "tag", "--points-at", "HEAD", "--sort", "-version:creatordate"}
+	if exclude != "" {
+		args = append(args, "--exclude", exclude)
 	}
+	if include != "" {
+		args = append(args, "--list", include)
+	}
+
+	result, _ := c.Clean(c.run(args...))
+
+	if result == "" {
+		fallback := []string{"-C", c.repoDir, "describe", "--tags", "--abbrev=0"}
+		if include != "" {
+			fallback = append(fallback, "--match", include)
+		}
+		if exclude != "" {
+			fallback = append(fallback, "--exclude", exclude)
+		}
+
+		result, _ = c.Clean(c.run(fallback...))
+	}
+
 	return result
 }
 

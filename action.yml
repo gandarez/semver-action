@@ -38,6 +38,14 @@ inputs:
     description: 'Regex to exclude branches from semantic versioning'
     default: ''
     required: false
+  include_tag_pattern:
+    description: 'Glob pattern to include tags when looking up the latest tag (passed to git --match/--list). Defaults to empty (no filter)'
+    default: ''
+    required: false
+  exclude_tag_pattern:
+    description: 'Glob pattern to exclude tags when looking up the latest tag (passed to git --exclude). Defaults to empty (no filter)'
+    default: ''
+    required: false
   base_version:
     description: 'Version to use as base for the generation, skips version bumps'
     required: false
@@ -88,6 +96,8 @@ runs:
     - ${{ inputs.build_regex }}
     - ${{ inputs.hotfix_regex }}
     - ${{ inputs.exclude_regex }}
+    - ${{ inputs.include_tag_pattern }}
+    - ${{ inputs.exclude_tag_pattern }}
     - ${{ inputs.base_version }}
     - ${{ inputs.prefix }}
     - ${{ inputs.prerelease_id }}

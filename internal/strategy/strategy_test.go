@@ -15,7 +15,7 @@ type gitClientMock struct {
 	IsRepoFnInvoked        int
 	MakeSafeFn             func() error
 	MakeSafeFnInvoked      int
-	LatestTagFn            func() string
+	LatestTagFn            func(include, exclude string) string
 	LatestTagFnInvoked     int
 	AncestorTagFn          func(include, exclude, branch string) string
 	AncestorTagFnInvoked   int
@@ -40,7 +40,7 @@ func initGitClientMock(
 		MakeSafeFn: func() error {
 			return nil
 		},
-		LatestTagFn: func() string {
+		LatestTagFn: func(include, exclude string) string {
 			return latestTag
 		},
 		AncestorTagFn: func(include, exclude, branch string) string {
@@ -68,9 +68,9 @@ func (m *gitClientMock) IsRepo() bool {
 	return m.IsRepoFn()
 }
 
-func (m *gitClientMock) LatestTag() string {
+func (m *gitClientMock) LatestTag(include, exclude string) string {
 	m.LatestTagFnInvoked++
-	return m.LatestTagFn()
+	return m.LatestTagFn(include, exclude)
 }
 
 func (m *gitClientMock) AncestorTag(include, exclude, branch string) string {

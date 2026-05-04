@@ -180,7 +180,7 @@ func TestLatestTag(t *testing.T) {
 		return "v2.4.79", nil
 	}
 
-	value := gc.LatestTag()
+	value := gc.LatestTag("", "")
 
 	assert.Equal(t, "v2.4.79", value)
 }
@@ -204,9 +204,67 @@ func TestLatestTag_NoTagFound(t *testing.T) {
 		return "", nil
 	}
 
-	value := gc.LatestTag()
+	value := gc.LatestTag("", "")
 
 	assert.Empty(t, value)
+}
+
+func TestLatestTag_WithIncludeExclude(t *testing.T) {
+	var numCalls int
+
+	gc := git.New("/path/to/repo")
+	gc.GitCmd = func(env map[string]string, args ...string) (string, error) {
+		numCalls++
+
+		assert.Nil(t, env)
+
+		switch numCalls {
+		case 1:
+			assert.Equal(t, args, []string{
+				"-C", "/path/to/repo", "tag", "--points-at", "HEAD", "--sort", "-version:creatordate",
+				"--exclude", "v[0-9]*-pre*", "--list", "v[0-9]*",
+			})
+			return "v1.2.0", nil
+		}
+
+		return "", nil
+	}
+
+	value := gc.LatestTag("v[0-9]*", "v[0-9]*-pre*")
+
+	assert.Equal(t, "v1.2.0", value)
+}
+
+func TestLatestTag_FallbackWithIncludeExclude(t *testing.T) {
+	var numCalls int
+
+	gc := git.New("/path/to/repo")
+	gc.GitCmd = func(env map[string]string, args ...string) (string, error) {
+		numCalls++
+
+		assert.Nil(t, env)
+
+		switch numCalls {
+		case 1:
+			assert.Equal(t, args, []string{
+				"-C", "/path/to/repo", "tag", "--points-at", "HEAD", "--sort", "-version:creatordate",
+				"--exclude", "v[0-9]*-pre*", "--list", "v[0-9]*",
+			})
+			return "", nil
+		case 2:
+			assert.Equal(t, args, []string{
+				"-C", "/path/to/repo", "describe", "--tags", "--abbrev=0",
+				"--match", "v[0-9]*", "--exclude", "v[0-9]*-pre*",
+			})
+			return "v1.2.0", nil
+		}
+
+		return "", nil
+	}
+
+	value := gc.LatestTag("v[0-9]*", "v[0-9]*-pre*")
+
+	assert.Equal(t, "v1.2.0", value)
 }
 
 func TestAncestorTag(t *testing.T) {

@@ -374,6 +374,25 @@ func TestTag(t *testing.T) {
 	}
 }
 
+func TestTag_NotValidSemanticVersion(t *testing.T) {
+	p, err := generate.LoadParams()
+	require.NoError(t, err)
+
+	gc := initGitClientMock(
+		t,
+		"gen/v1.0.0",
+		"",
+		"develop",
+		"feature/semver-initial",
+		"",
+	)
+
+	_, err = generate.Tag(p, gc)
+	require.Error(t, err)
+
+	assert.EqualError(t, err, "failed to parse tag \"gen/v1.0.0\" or not valid semantic version: Invalid character(s) found in major number \"0gen/v1\"")
+}
+
 func TestTag_IsNotRepo(t *testing.T) {
 	gc := &gitClientMock{
 		MakeSafeFn: func() error {
@@ -410,7 +429,7 @@ type gitClientMock struct {
 	IsRepoFnInvoked        int
 	MakeSafeFn             func() error
 	MakeSafeFnInvoked      int
-	LatestTagFn            func() string
+	LatestTagFn            func(include, exclude string) string
 	LatestTagFnInvoked     int
 	AncestorTagFn          func(include, exclude, branch string) string
 	AncestorTagFnInvoked   int
@@ -429,7 +448,7 @@ func initGitClientMock(t *testing.T, latestTag, ancestorTag, currentBranch, sour
 		MakeSafeFn: func() error {
 			return nil
 		},
-		LatestTagFn: func() string {
+		LatestTagFn: func(include, exclude string) string {
 			return latestTag
 		},
 		AncestorTagFn: func(include, exclude, branch string) string {
@@ -456,9 +475,9 @@ func (m *gitClientMock) MakeSafe() error {
 	return m.MakeSafeFn()
 }
 
-func (m *gitClientMock) LatestTag() string {
+func (m *gitClientMock) LatestTag(include, exclude string) string {
 	m.LatestTagFnInvoked += 1
-	return m.LatestTagFn()
+	return m.LatestTagFn(include, exclude)
 }
 
 func (m *gitClientMock) AncestorTag(include, exclude, branch string) string {

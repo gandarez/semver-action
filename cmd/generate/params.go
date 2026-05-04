@@ -35,13 +35,15 @@ type Params struct {
 	PrereleaseID      string
 	MainBranchName    string
 	DevelopBranchName string
-	PatchPattern      regex.Regex
-	MinorPattern      regex.Regex
-	MajorPattern      regex.Regex
-	BuildPattern      regex.Regex
-	HotfixPattern     regex.Regex
-	ExcludePattern    regex.Regex
-	Debug             bool
+	PatchPattern       regex.Regex
+	MinorPattern       regex.Regex
+	MajorPattern       regex.Regex
+	BuildPattern       regex.Regex
+	HotfixPattern      regex.Regex
+	ExcludePattern     regex.Regex
+	IncludeTagPattern  string
+	ExcludeTagPattern  string
+	Debug              bool
 }
 
 // LoadParams loads semver generate config params.
@@ -149,6 +151,9 @@ func LoadParams() (Params, error) {
 		excludePattern = compiled
 	}
 
+	includeTagPattern := actions.GetInput("include_tag_pattern")
+	excludeTagPattern := actions.GetInput("exclude_tag_pattern")
+
 	var debug bool
 
 	if debugStr := actions.GetInput("debug"); debugStr != "" {
@@ -214,6 +219,8 @@ func LoadParams() (Params, error) {
 		BuildPattern:      buildPattern,
 		HotfixPattern:     hotfixPattern,
 		ExcludePattern:    excludePattern,
+		IncludeTagPattern: includeTagPattern,
+		ExcludeTagPattern: excludeTagPattern,
 		Debug:             debug,
 	}, nil
 }
