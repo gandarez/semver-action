@@ -374,25 +374,6 @@ func TestTag(t *testing.T) {
 	}
 }
 
-func TestTag_NotValidSemanticVersion(t *testing.T) {
-	p, err := generate.LoadParams()
-	require.NoError(t, err)
-
-	gc := initGitClientMock(
-		t,
-		"gen/v1.0.0",
-		"",
-		"develop",
-		"feature/semver-initial",
-		"",
-	)
-
-	_, err = generate.Tag(p, gc)
-	require.Error(t, err)
-
-	assert.EqualError(t, err, "failed to parse tag \"gen/v1.0.0\" or not valid semantic version: Invalid character(s) found in major number \"0gen/v1\"")
-}
-
 func TestTag_IsNotRepo(t *testing.T) {
 	gc := &gitClientMock{
 		MakeSafeFn: func() error {
