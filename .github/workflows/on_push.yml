@@ -4,6 +4,9 @@ env:
   GO_VERSION_FILE: "go.mod"
   CHECK_LATEST: true
 
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Unit Tests
@@ -22,7 +25,7 @@ jobs:
         run: go mod vendor
       -
         name: Linter
-        run: make lint
+        uses: golangci/golangci-lint-action@v9
       -
         name: Unit tests
         run: make test
