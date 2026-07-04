@@ -29,6 +29,11 @@ build-darwin:
 build-linux:
 	GOOS=linux GOARCH=amd64 $(GOBUILD) -o ./build/linux/amd64/$(BINARY_NAME) -v
 
+# build for the native architecture of the current machine (used by the Docker action,
+# which runs on both linux/amd64 and linux/arm64)
+build-linux-native:
+	GOOS=linux $(GOBUILD) -o ./build/linux/$(BINARY_NAME) -v
+
 build-windows:
 	GOOS=windows GOARCH=amd64 $(GOBUILD) -o ./build/windows/amd64/$(BINARY_NAME).exe -v
 
